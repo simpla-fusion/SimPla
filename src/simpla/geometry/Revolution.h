@@ -65,8 +65,9 @@ struct RevolutionSolid : public Solid {
    private:
     std::shared_ptr<const Face> m_basis_obj_;
 };
+std::shared_ptr<GeoObject> MakeRevolution(std::shared_ptr<const GeoEntity> const &g, Axis const &axis, Real angle1);
 
- std::shared_ptr<GeoObject> MakeRevolution(std::shared_ptr<const GeoObject> const &g, Axis const &axis, Real angle1);
+// std::shared_ptr<GeoObject> MakeRevolution(std::shared_ptr<const GeoObject> const &g, Axis const &axis, Real angle1);
 
 }  // namespace simpla
 }  // namespace geometry

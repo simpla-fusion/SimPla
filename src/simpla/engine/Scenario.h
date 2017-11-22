@@ -15,14 +15,10 @@ class DomainBase;
 class Atlas;
 
 class Scenario : public EngineObject {
+    SP_ENABLE_NEW_HEAD(EngineObject, Scenario)
    public:
-    SP_SERIALIZABLE_HEAD(EngineObject, Scenario)
-
     void Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) override;
     std::shared_ptr<simpla::data::DataEntry> Serialize() const override;
-
-    Scenario();
-    ~Scenario();
 
     virtual void TagRefinementCells(Real time_now);
     virtual void Synchronize(int level);

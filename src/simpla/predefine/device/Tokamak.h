@@ -16,8 +16,8 @@
 #include <simpla/data/DataEntry.h>
 #include <simpla/data/Serializable.h>
 #include <simpla/geometry/Axis.h>
-#include <simpla/geometry/gPolygon2D.h>
 #include <simpla/geometry/GeoEntity.h>
+#include <simpla/geometry/gPolygon.h>
 #include <simpla/utilities/SPDefines.h>
 #include <functional>
 namespace simpla {
@@ -26,19 +26,16 @@ namespace simpla {
  *  Define Tokamak geometry, parser GEqdsk
  */
 class Tokamak : public data::Serializable, public data::Configurable {
-    SP_SERIALIZABLE_HEAD(data::Serializable, Tokamak);
-    SP_ENABLE_NEW;
+    SP_ENABLE_NEW_HEAD(data::Serializable, Tokamak);
 
    private:
     struct pimpl_s;
     pimpl_s *m_pimpl_;
 
    protected:
-    explicit Tokamak(std::string const &url = "");
+    explicit Tokamak(std::string const &url);
 
    public:
-    ~Tokamak() override;
-
     void ReadGFile(std::string const &);
     void WriteGFile(std::string const &) const;
 

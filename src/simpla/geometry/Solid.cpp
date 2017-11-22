@@ -6,9 +6,6 @@
 #include "gBody.h"
 namespace simpla {
 namespace geometry {
-Solid::Solid() = default;
-Solid::Solid(Solid const &) = default;
-Solid::~Solid() = default;
 
 Solid::Solid(Axis const &axis, std::shared_ptr<const gBody> const &body, Real u_min, Real u_max, Real v_min, Real v_max,
              Real w_min, Real w_max)

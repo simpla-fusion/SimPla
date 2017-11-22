@@ -28,29 +28,28 @@ std::istream &operator>>(std::istream &is, Serializable &obj);
    public:                                              \
     std::string FancyTypeName() const override { return base_type::FancyTypeName() + "." + __STRING(_CLASS_NAME_); }
 
-#define SP_ENABLE_NEW                                                                  \
+#define SP_ENABLE_NEW_HEAD(_BASE_NAME_, _CLASS_NAME_)                                  \
+    SP_SERIALIZABLE_HEAD(_BASE_NAME_, _CLASS_NAME_)                                    \
+   protected:                                                                          \
+    _CLASS_NAME_();                                                                    \
+                                                                                       \
+   public:                                                                             \
+    ~_CLASS_NAME_() override;                                                          \
     template <typename... Args>                                                        \
     static std::shared_ptr<this_type> New(Args &&... args) {                           \
         return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...)); \
     }
-#define ENABLE_NEW                                                                                   \
-                                                                                                     \
-   private:                                                                                          \
-    template <typename... Args>                                                                      \
-    static std::shared_ptr<this_type> TryNew(std::true_type, Args &&... args) {                      \
-        return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));               \
-    }                                                                                                \
-    template <typename... Args>                                                                      \
-    static std::shared_ptr<this_type> TryNew(std::false_type, Args &&... args) {                     \
-        return std::dynamic_pointer_cast<this_type>(base_type::Create(std::forward<Args>(args)...)); \
-    }                                                                                                \
+#define SP_ENABLE_CREATE_HEAD(_BASE_NAME_, _CLASS_NAME_)                                             \
+    SP_SERIALIZABLE_HEAD(_BASE_NAME_, _CLASS_NAME_)                                                  \
+   protected:                                                                                        \
+    _CLASS_NAME_();                                                                                  \
                                                                                                      \
    public:                                                                                           \
+    ~_CLASS_NAME_() override;                                                                        \
     template <typename... Args>                                                                      \
-    static std::shared_ptr<this_type> New(Args &&... args) {                                         \
-        return TryNew(std::is_constructible<this_type,Args...>(),std::forward<Args>(args)...);      \
+    static std::shared_ptr<this_type> Create(Args &&... args) {                                      \
+        return std::dynamic_pointer_cast<this_type>(base_type::Create(std::forward<Args>(args)...)); \
     }
-
 }  // namespace geometry
 }  // namespace simpla
 

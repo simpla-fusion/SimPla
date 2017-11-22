@@ -9,9 +9,6 @@
 namespace simpla {
 namespace geometry {
 SP_GEO_OBJECT_REGISTER(Box)
-Box::Box() = default;
-Box::Box(Box const &) = default;
-Box::~Box() = default;
 
 Box::Box(point_type const &p0, point_type const &p1)
     : Solid(Axis{p0, point_type{p1[0] - p0[0], 0, 0}, point_type{0, p1[1] - p0[1], 0}, point_type{0, 0, p1[2] - p0[2]}},

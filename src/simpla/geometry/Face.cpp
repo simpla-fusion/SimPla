@@ -5,9 +5,6 @@
 #include "Face.h"
 namespace simpla {
 namespace geometry {
-Face::Face() = default;
-Face::Face(Face const &) = default;
-Face::~Face() = default;
 
 Face::Face(Axis const &axis, std::shared_ptr<const gSurface> const &surface, Real u_max, Real v_max)
     : Face(axis, surface, 0, 0, u_max, v_max) {}

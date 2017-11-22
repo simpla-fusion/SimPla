@@ -9,7 +9,6 @@ namespace simpla {
 namespace geometry {
 struct Point : public GeoObject {
     SP_GEO_OBJECT_HEAD(GeoObject, Point);
-    Point(Axis const &);
 };
 }  // namespace geometry
 }  // namespace simpla

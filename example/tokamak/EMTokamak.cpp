@@ -43,9 +43,10 @@ int main(int argc, char **argv) {
     scenario->GetAtlas()->SetPeriodicDimensions({1, 1, 1});
     scenario->GetAtlas()->SetBoundingBox(box_type{{1.2, -1.4, -PI / 2}, {1.8, 1.4, PI / 2}});
     auto tokamak = sp::Tokamak::New("/home/salmon/workspace/SimPla/scripts/gfile/g038300.03900");
-    auto g_boundary = sg::MakeRevolution(tokamak->Boundary());
+    auto g_boundary = sg::MakeRevolution(tokamak->Boundary(), sg::Axis{}, TWOPI);
     auto d_limiter = scenario->NewDomain<domain::Maxwell<domain_type>>(
-        "Limiter", sg::MakeRevolution(sg::Axis{}, tokamak->Limiter(), sp::TWOPI));
+        "Limiter",
+        sg::MakeRevolution(tokamak->Limiter(), sg::Axis{}, sp::TWOPI));
     d_limiter->AddPostInitialCondition([=](auto *self, Real time_now) {
         self->B = [&](point_type const &x) {
             return point_type{std::cos(2 * PI * x[1] / 60) * std::cos(2 * PI * x[2] / 50),

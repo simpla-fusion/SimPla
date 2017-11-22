@@ -55,7 +55,7 @@ void Scenario::Deserialize(std::shared_ptr<const data::DataEntry> const &cfg) {
 
     if (auto domain = cfg->Get("Domains")) {
         domain->Foreach([&](std::string key, std::shared_ptr<const data::DataEntry> node) {
-            SetDomain(key, DomainBase::New(node));
+            SetDomain(key, DomainBase::Create(node));
         });
     }
     //    if (auto patches = cfg->Get("Patches")) {
@@ -102,14 +102,13 @@ void Scenario::Dump() const {
     for (auto const &d : m_pimpl_->m_domains_) { GEO_ENGINE->Save(d.second->GetBoundary(), d.first); }
     GEO_ENGINE->CloseFile();
 
-//    std::ostringstream os;
-//
-//    os << prefix << "_dump_" << std::setfill('0') << std::setw(8) << GetStepNumber() << "." << suffix;
-//    VERBOSE << std::setw(20) << "Dump : " << os.str();
-//    auto dump = data::DataEntry::New(os.str());
-//    dump->Set(Serialize());
-//    dump->Flush();
-
+    //    std::ostringstream os;
+    //
+    //    os << prefix << "_dump_" << std::setfill('0') << std::setw(8) << GetStepNumber() << "." << suffix;
+    //    VERBOSE << std::setw(20) << "Dump : " << os.str();
+    //    auto dump = data::DataEntry::New(os.str());
+    //    dump->Set(Serialize());
+    //    dump->Flush();
 }
 
 std::shared_ptr<Attribute> Scenario::GetAttribute(std::string const &key) {
@@ -224,7 +223,7 @@ box_type Scenario::FitBoundingBox() const {
 }
 std::shared_ptr<DomainBase> Scenario::NewDomain(std::string const &s_type, std::string const &k,
                                                 std::shared_ptr<const geometry::GeoObject> const &g) {
-    SetDomain(k, DomainBase::New(s_type));
+    SetDomain(k, DomainBase::Create(s_type));
     GetDomain(k)->SetBoundary(g);
     return GetDomain(k);
 };

@@ -11,7 +11,6 @@ namespace simpla {
 namespace geometry {
 struct Line : public Edge {
     SP_GEO_OBJECT_HEAD(Edge, Line)
-    Line(Axis const &);
 };
 }  // namespace geometry{
 }  // namespace simpla{

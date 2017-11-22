@@ -11,7 +11,7 @@ namespace simpla {
 namespace geometry {
 
 struct gSweeping : public GeoEntity {
-    SP_GEO_ENTITY_HEAD(GeoEntity, gSweeping);
+    SP_GEO_ENTITY_HEAD(GeoEntity, gSweeping, Sweeping);
 
     gSweeping(std::shared_ptr<const GeoEntity> const& basis_entity, std::shared_ptr<const gCurve> const& curve,
               vector_type const& Nx = {1, 0, 0}, vector_type const& Ny = {0, 1, 1})
@@ -34,12 +34,12 @@ struct gSweeping : public GeoEntity {
     std::shared_ptr<const gCurve> m_curve_;
     std::shared_ptr<const GeoEntity> m_basis_entity_;
 };
-std::shared_ptr<gSweeping> MakeRevolution(std::shared_ptr<const GeoEntity> const& geo, vector_type const& Nr,
+std::shared_ptr<gSweeping> gMakeRevolution(std::shared_ptr<const GeoEntity> const& geo, vector_type const& Nr,
                                           vector_type const& Nz);
 
-std::shared_ptr<gSweeping> MakePrism(std::shared_ptr<const GeoEntity> const& geo, vector_type const& direction);
+std::shared_ptr<gSweeping> gMakePrism(std::shared_ptr<const GeoEntity> const& geo, vector_type const& direction);
 
-std::shared_ptr<gSweeping> MakePipe(std::shared_ptr<const GeoEntity> const& geo,
+std::shared_ptr<gSweeping> gMakePipe(std::shared_ptr<const GeoEntity> const& geo,
                                     std::shared_ptr<const gCurve> const& curve);
 }  // namespace geometry {
 }  // namespace simpla {

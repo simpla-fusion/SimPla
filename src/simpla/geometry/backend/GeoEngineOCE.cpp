@@ -332,10 +332,6 @@ std::shared_ptr<TDest> oce_cast(std::shared_ptr<const TSrc> const &s) {
     return OCEShapeCast<TDest, TSrc>::eval(s);
 };
 
-GeoObjectOCE::GeoObjectOCE() = default;
-GeoObjectOCE::GeoObjectOCE(GeoObjectOCE const &) = default;
-GeoObjectOCE::~GeoObjectOCE() = default;
-
 GeoObjectOCE::GeoObjectOCE(TopoDS_Shape const &shape) : m_occ_shape_(std::make_shared<TopoDS_Shape>(shape)) {
     DoUpdate();
 }

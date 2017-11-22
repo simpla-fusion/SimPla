@@ -11,11 +11,11 @@ namespace geometry {
 struct gBody;
 struct Solid : public GeoObject {
     SP_GEO_OBJECT_HEAD(GeoObject, Solid);
-    void Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) override;                            \
-    std::shared_ptr<simpla::data::DataEntry> Serialize() const override;                                             \
+    void Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) override;
+    std::shared_ptr<simpla::data::DataEntry> Serialize() const override;
 
    protected:
-    explicit Solid(Axis const &axis, std::shared_ptr<const gBody> const &body = nullptr, Real u_min = 0, Real u_max = 1,
+    explicit Solid(Axis const &axis, std::shared_ptr<const gBody> const &body, Real u_min = 0, Real u_max = 1,
                    Real v_min = 0, Real v_max = 1, Real w_min = 0, Real w_max = 1);
     explicit Solid(Axis const &axis, std::shared_ptr<const gBody> const &body, point_type const &u_min,
                    point_type const &u_max);

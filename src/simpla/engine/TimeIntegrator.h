@@ -9,12 +9,9 @@
 namespace simpla {
 namespace engine {
 class TimeIntegrator : public Scenario {
-    SP_SERIALIZABLE_HEAD(Scenario, TimeIntegrator);
+    SP_ENABLE_NEW_HEAD(Scenario, TimeIntegrator);
 
    public:
-    TimeIntegrator();
-    ~TimeIntegrator();
-
     virtual void InitialCondition(Real time_now);
     virtual void BoundaryCondition(Real time_now, Real dt);
     virtual void ComputeFluxes(Real time_now, Real time_dt);

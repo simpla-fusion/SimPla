@@ -7,11 +7,10 @@
 #include "Wire.h"
 #include "gCurve.h"
 #include "gSurface.h"
+#include "gSweeping.h"
+
 namespace simpla {
 namespace geometry {
-RevolutionShell::RevolutionShell() = default;
-RevolutionShell::RevolutionShell(RevolutionShell const &) = default;
-RevolutionShell::~RevolutionShell() = default;
 RevolutionShell::RevolutionShell(Axis const &axis, std::shared_ptr<const Wire> const &g, Real min_angle, Real max_angle)
     : Shell(axis), m_basis_obj_(g), m_MinAngle_(min_angle), m_MaxAngle_(max_angle) {}
 RevolutionShell::RevolutionShell(Axis const &axis, std::shared_ptr<const Wire> const &g, Real angle)
@@ -25,9 +24,6 @@ std::shared_ptr<simpla::data::DataEntry> RevolutionShell::Serialize() const {
     res->Set("Wire", m_basis_obj_->Serialize());
     return res;
 }
-RevolutionFace::RevolutionFace() = default;
-RevolutionFace::RevolutionFace(RevolutionFace const &) = default;
-RevolutionFace::~RevolutionFace() = default;
 RevolutionFace::RevolutionFace(Axis const &axis, std::shared_ptr<const Edge> const &g, Real min_angle, Real max_angle)
     : Face(axis), m_basis_obj_(g), m_MinAngle_(min_angle), m_MaxAngle_(max_angle) {}
 RevolutionFace::RevolutionFace(Axis const &axis, std::shared_ptr<const Edge> const &g, Real angle)
@@ -35,7 +31,7 @@ RevolutionFace::RevolutionFace(Axis const &axis, std::shared_ptr<const Edge> con
 
 void RevolutionFace::Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) {
     base_type::Deserialize(cfg);
-    m_basis_obj_ = Edge::New(cfg->Get("Edge"));
+    m_basis_obj_ = Edge::Create(cfg->Get("Edge"));
 }
 std::shared_ptr<simpla::data::DataEntry> RevolutionFace::Serialize() const {
     auto res = base_type::Serialize();
@@ -51,16 +47,14 @@ std::shared_ptr<simpla::data::DataEntry> RevolutionFace::Serialize() const {
 //    Real cosw = std::cos(w);
 //    return m_axis_.xyz(p[0] * cosw - p[1] * sinw, p[0] * sinw + p[1] * cosw, p[2]);
 //};
-RevolutionSolid::RevolutionSolid() = default;
-RevolutionSolid::RevolutionSolid(RevolutionSolid const &) = default;
-RevolutionSolid::~RevolutionSolid() = default;
+
 RevolutionSolid::RevolutionSolid(Axis const &axis, std::shared_ptr<const Face> const &f, Real min_angle, Real max_angle)
     : Solid(axis), m_basis_obj_(f), m_MinAngle_(min_angle), m_MaxAngle_(max_angle) {}
 RevolutionSolid::RevolutionSolid(Axis const &axis, std::shared_ptr<const Face> const &f, Real angle)
     : RevolutionSolid(axis, f, 0, angle) {}
 void RevolutionSolid::Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) {
     base_type::Deserialize(cfg);
-    m_basis_obj_ = Face::New(cfg->Get("Face"));
+    m_basis_obj_ = Face::Create(cfg->Get("Face"));
 }
 std::shared_ptr<simpla::data::DataEntry> RevolutionSolid::Serialize() const {
     auto res = base_type::Serialize();
@@ -68,25 +62,24 @@ std::shared_ptr<simpla::data::DataEntry> RevolutionSolid::Serialize() const {
     return res;
 }
 
-std::shared_ptr<GeoObject> MakeRevolution(Axis const &axis, std::shared_ptr<const GeoEntity> const &g, Real angle) {
+// std::shared_ptr<GeoObject> MakeRevolution(std::shared_ptr<const GeoObject> const &g, Axis const &axis, Real angle) {
+//    std::shared_ptr<GeoObject> res = nullptr;
+//    if (auto curve = std::dynamic_pointer_cast<const Edge>(g)) {
+//        res = RevolutionFace::New(axis, curve, angle);
+//    } else if (auto face = std::dynamic_pointer_cast<const Face>(g)) {
+//        res = RevolutionSolid::New(axis, face, angle);
+//    }
+//
+//    return res;
+//}
+std::shared_ptr<GeoObject> MakeRevolution(std::shared_ptr<const GeoEntity> const &g, Axis const &axis, Real angle) {
     std::shared_ptr<GeoObject> res = nullptr;
     if (auto curve = std::dynamic_pointer_cast<const gCurve>(g)) {
-        res = RevolutionFace::New(axis, Edge::New(axis, curve), angle);
+        //        res = Face::New(axis, gMakeRevolution(g, axis.x, axis.z), 1, 1);
     } else if (auto surface = std::dynamic_pointer_cast<const gSurface>(g)) {
-        res = RevolutionSolid::New(axis, Face::New(axis, surface), angle);
+        //        res = Solid::New(axis, gMakeRevolution(g, axis.x, axis.z), 0, 1, 0, 1, 0, angle);
     }
     return res;
 }
-std::shared_ptr<GeoObject> MakeRevolution(Axis const &axis, std::shared_ptr<const GeoObject> const &g, Real angle) {
-    std::shared_ptr<GeoObject> res = nullptr;
-    if (auto curve = std::dynamic_pointer_cast<const Edge>(g)) {
-        res = RevolutionFace::New(axis, curve, angle);
-    } else if (auto face = std::dynamic_pointer_cast<const Face>(g)) {
-        res = RevolutionSolid::New(axis, face, angle);
-    }
-
-    return res;
-}
-
 }  // namespace geometry{
 }  // namespace simpla{

@@ -8,11 +8,9 @@
 #include "simpla/engine/TimeIntegrator.h"
 namespace simpla {
 class SimpleTimeIntegrator : public engine::TimeIntegrator {
-    SP_SERIALIZABLE_HEAD(engine::TimeIntegrator, SimpleTimeIntegrator);
-    ENABLE_NEW;
+    SP_ENABLE_NEW_HEAD(engine::TimeIntegrator, SimpleTimeIntegrator);
 
-    SimpleTimeIntegrator();
-    ~SimpleTimeIntegrator() override;
+   public:
     void DoSetUp() override;
     void DoUpdate() override;
     void DoTearDown() override;

@@ -24,8 +24,8 @@ namespace engine {
 using namespace simpla::data;
 
 class DomainBase : public EngineObject, public AttributeGroup {
-    SP_SERIALIZABLE_HEAD(EngineObject, DomainBase)
-    ENABLE_NEW
+    SP_ENABLE_CREATE_HEAD(EngineObject, DomainBase)
+
     void Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) override;
     std::shared_ptr<simpla::data::DataEntry> Serialize() const override;
 
@@ -34,11 +34,6 @@ class DomainBase : public EngineObject, public AttributeGroup {
     pimpl_s *m_pimpl_ = nullptr;
 
    public:
-    DomainBase();
-    ~DomainBase() override;
-    //    DomainBase(DomainBase const &);
-    //    std::shared_ptr<EngineObject> Copy() const override;
-
     void Push(const std::shared_ptr<Patch> &) override;
     std::shared_ptr<Patch> Pop() const override;
     bool IsInitialized() const override;
@@ -98,13 +93,9 @@ class DomainBase : public EngineObject, public AttributeGroup {
 template <typename TChart, template <typename> class... Policies>
 class Domain : public DomainBase, public Policies<Domain<TChart, Policies...>>... {
     typedef TChart chart_type;
-    SP_SERIALIZABLE_HEAD(DomainBase, Domain);
-
-   protected:
-    Domain();
+    SP_ENABLE_NEW_HEAD(DomainBase, Domain);
 
    public:
-    ~Domain();
     std::shared_ptr<const geometry::Chart> GetChart() const override { return DomainBase::GetChart(); };
     std::shared_ptr<const engine::MeshBlock> GetMeshBlock() const override { return DomainBase::GetMeshBlock(); };
 
@@ -131,24 +122,19 @@ class Domain : public DomainBase, public Policies<Domain<TChart, Policies...>>..
 };  // class Domain
 
 #define SP_DOMAIN_HEAD(_CLASS_NAME_, _BASE_NAME_)                                                                      \
-   private:                                                                                                            \
-    typedef _CLASS_NAME_ this_type;                                                                                    \
-    typedef _BASE_NAME_ base_type;                                                                                     \
-                                                                                                                       \
-   public:                                                                                                             \
-    std::string FancyTypeName() const override { return base_type::FancyTypeName() + "." + __STRING(_CLASS_NAME_); }   \
-                                                                                                                       \
-    template <typename... Args>                                                                                        \
-    static std::shared_ptr<this_type> New(Args &&... args) {                                                           \
-        return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));                                 \
-    }                                                                                                                  \
-    static bool _is_registered;                                                                                        \
-                                                                                                                       \
+    SP_SERIALIZABLE_HEAD(_BASE_NAME_, _CLASS_NAME_)                                                                    \
    protected:                                                                                                          \
     _CLASS_NAME_();                                                                                                    \
                                                                                                                        \
    public:                                                                                                             \
-    ~_CLASS_NAME_();                                                                                                   \
+    ~_CLASS_NAME_() override;                                                                                          \
+    template <typename... Args>                                                                                        \
+    static std::shared_ptr<this_type> New(Args &&... args) {                                                           \
+        return std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...));                                 \
+    }                                                                                                                  \
+                                                                                                                       \
+    static bool _is_registered;                                                                                        \
+                                                                                                                       \
     void DoSetUp() override;                                                                                           \
     void DoUpdate() override;                                                                                          \
     void DoTearDown() override;                                                                                        \
@@ -157,29 +143,28 @@ class Domain : public DomainBase, public Policies<Domain<TChart, Policies...>>..
     void DoAdvance(Real time_now, Real dt) override;                                                                   \
     void DoTagRefinementCells(Real time_now) override;                                                                 \
     void AddOnDeserialize(                                                                                             \
-        std::function<void(_CLASS_NAME_ *, std::shared_ptr<const simpla::data::DataEntry> const &)> const &fun) {      \
+        std::function<void(this_type *, std::shared_ptr<const simpla::data::DataEntry> const &)> const &fun) {         \
         simpla::engine::DomainBase::OnDeserialize.Connect(                                                             \
             [=](simpla::engine::DomainBase *self, std::shared_ptr<const simpla::data::DataEntry> const &cfg) {         \
-                if (auto d = dynamic_cast<_CLASS_NAME_ *>(self)) { fun(d, cfg); };                                     \
+                if (auto d = dynamic_cast<this_type *>(self)) { fun(d, cfg); };                                        \
             });                                                                                                        \
     }                                                                                                                  \
     void AddOnSerialize(                                                                                               \
-        std::function<void(_CLASS_NAME_ const *, std::shared_ptr<const simpla::data::DataEntry> const &)> const        \
-            &fun) {                                                                                                    \
+        std::function<void(this_type const *, std::shared_ptr<const simpla::data::DataEntry> const &)> const &fun) {   \
         simpla::engine::DomainBase::OnDeserialize.Connect(                                                             \
             [=](simpla::engine::DomainBase const *self, std::shared_ptr<const simpla::data::DataEntry> const &cfg) {   \
                 if (auto d = dynamic_cast<_CLASS_NAME_ const *>(self)) { fun(d, cfg); };                               \
             });                                                                                                        \
     }                                                                                                                  \
-    void AddPreInitialCondition(std::function<void(_CLASS_NAME_ *, Real)> const &fun) {                                \
+    void AddPreInitialCondition(std::function<void(this_type *, Real)> const &fun) {                                   \
         simpla::engine::DomainBase::PreInitialCondition.Connect([=](simpla::engine::DomainBase *self, Real time_now) { \
-            if (auto d = dynamic_cast<_CLASS_NAME_ *>(self)) { fun(d, time_now); };                                    \
+            if (auto d = dynamic_cast<this_type *>(self)) { fun(d, time_now); };                                       \
         });                                                                                                            \
     }                                                                                                                  \
-    void AddPostInitialCondition(std::function<void(_CLASS_NAME_ *, Real)> const &fun) {                               \
+    void AddPostInitialCondition(std::function<void(this_type *, Real)> const &fun) {                                  \
         simpla::engine::DomainBase::PostInitialCondition.Connect(                                                      \
             [=](simpla::engine::DomainBase *self, Real time_now) {                                                     \
-                if (auto d = dynamic_cast<_CLASS_NAME_ *>(self)) { fun(d, time_now); };                                \
+                if (auto d = dynamic_cast<this_type *>(self)) { fun(d, time_now); };                                   \
             });                                                                                                        \
     }
 

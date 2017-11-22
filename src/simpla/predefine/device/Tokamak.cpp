@@ -51,8 +51,8 @@ Tokamak::~Tokamak() { delete m_pimpl_; }
 
 void Tokamak::ReadGFile(std::string const &fname) {
     std::ifstream inFileStream_(fname);
-    m_pimpl_->m_rzbbb_ = geometry::gPolygon::New();
-    m_pimpl_->m_rzlim_ = geometry::gPolygon::New();
+    m_pimpl_->m_rzbbb_ = geometry::gPolygon2D::New();
+    m_pimpl_->m_rzlim_ = geometry::gPolygon2D::New();
     if (!inFileStream_.is_open()) {
         THROW_EXCEPTION_RUNTIME_ERROR("File " + fname + " is not opend!");
         return;

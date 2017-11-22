@@ -87,27 +87,32 @@ struct GeoEntity : public data::Serializable, public data::Configurable, public 
     virtual GeoEntity *CopyP() const = 0;
     std::shared_ptr<GeoEntity> Copy() const { return std::shared_ptr<GeoEntity>(CopyP()); }
 };
-#define SP_GEO_ENTITY_ABS_HEAD(_BASE_NAME_, _CLASS_NAME_) \
-   private:                                               \
-    typedef _CLASS_NAME_ this_type;                       \
-    typedef _BASE_NAME_ base_type;                        \
-                                                          \
-   public:                                                \
-    _CLASS_NAME_() = default;                             \
-    _CLASS_NAME_(_CLASS_NAME_ const &) = default;         \
-                                                          \
-    ~_CLASS_NAME_() override = default;                   \
-    std::string FancyTypeName() const override { return base_type::FancyTypeName() + "." + __STRING(_CLASS_NAME_); }
+#define SP_GEO_ENTITY_ABS_HEAD(_BASE_NAME_, _CLASS_NAME_)                                            \
+    SP_SERIALIZABLE_HEAD(_BASE_NAME_, _CLASS_NAME_)                                                  \
+   protected:                                                                                        \
+    _CLASS_NAME_() = default;                                                                        \
+    _CLASS_NAME_(_CLASS_NAME_ const &) = default;                                                    \
+                                                                                                     \
+   public:                                                                                           \
+    ~_CLASS_NAME_() override = default;                                                              \
+    template <typename... Args>                                                                      \
+    static std::shared_ptr<this_type> Create(Args &&... args) {                                      \
+        return std::dynamic_pointer_cast<this_type>(base_type::Create(std::forward<Args>(args)...)); \
+    }
 
-#define SP_GEO_ENTITY_HEAD(_BASE_NAME_, _CLASS_NAME_, _REGISTER_NAME_)               \
-    SP_GEO_ENTITY_ABS_HEAD(_BASE_NAME_, _CLASS_NAME_)                                \
-    ENABLE_NEW                                                                       \
-   private:                                                                          \
-    static bool _is_registered;                                                      \
-                                                                                     \
-   public:                                                                           \
-    static std::string RegisterName() noexcept { return __STRING(_REGISTER_NAME_); } \
-    this_type *CopyP() const override { return new this_type(*this); };
+#define SP_GEO_ENTITY_HEAD(_BASE_NAME_, _CLASS_NAME_, _REGISTER_NAME_)                       \
+    SP_GEO_ENTITY_ABS_HEAD(_BASE_NAME_, _CLASS_NAME_)                                        \
+                                                                                             \
+   private:                                                                                  \
+    static bool _is_registered;                                                              \
+                                                                                             \
+   public:                                                                                   \
+    static std::string RegisterName() noexcept { return __STRING(_REGISTER_NAME_); }         \
+    this_type *CopyP() const override { return new this_type(*this); };                      \
+    template <typename... Args>                                                              \
+    static std::shared_ptr<_CLASS_NAME_> New(Args &&... args) {                              \
+        return std::shared_ptr<_CLASS_NAME_>(new _CLASS_NAME_(std::forward<Args>(args)...)); \
+    }
 
 #define SP_GEO_ENTITY_REGISTER(_CLASS_NAME_) \
     bool _CLASS_NAME_::_is_registered =      \

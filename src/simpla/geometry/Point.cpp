@@ -6,10 +6,7 @@
 #include "Box.h"
 namespace simpla {
 namespace geometry {
-Point::Point() = default;
-Point::Point(Point const &) = default;
-Point::~Point() = default;
-Point::Point(Axis const &axis) : GeoObject(axis) {}
+SP_GEO_OBJECT_REGISTER(Point)
 
 }  // namespace geometry
 }  // namespace simpla
