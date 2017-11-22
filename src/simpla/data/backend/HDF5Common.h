@@ -106,15 +106,13 @@ std::shared_ptr<DataEntity> HDF5GetEntityT(hid_t attr_id, hid_t d_type, hid_t d_
     }
     return res;
 }
-
 std::shared_ptr<DataEntity> HDF5GetEntity(hid_t obj_id, bool is_attribute);
-size_type HDF5SetEntity(hid_t g_id, std::string const& key, std::shared_ptr<DataEntity> const& entity);
+size_type HDF5SetEntity(hid_t g_id, std::string const& key, std::shared_ptr<const DataEntity> const& entity);
 hid_t HDF5CreateOrOpenGroup(hid_t grp, std::string const& key);
 hid_t H5GroupTryOpen(hid_t grp, std::string const& key);
-size_type HDF5Set(hid_t g_id, std::string const& key, std::shared_ptr<DataEntry> node);
-size_type HDF5Add(hid_t g_id, std::string const& key, std::shared_ptr<DataEntry> node);
-
-void HDF5WriteArray(hid_t g_id, std::string const& key, std::shared_ptr<ArrayBase> const& data);
+size_type HDF5Set(hid_t g_id, std::string const& key, std::shared_ptr<const DataEntry> node);
+size_type HDF5Add(hid_t g_id, std::string const& key, std::shared_ptr<const DataEntry> node);
+void HDF5WriteArray(hid_t g_id, std::string const& key, std::shared_ptr<const ArrayBase> const& data);
 }
 }
 

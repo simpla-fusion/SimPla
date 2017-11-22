@@ -54,10 +54,6 @@ box_type DomainBase::GetBlockBox() const { return GetChart()->GetBoxUVW(GetMeshB
 void DomainBase::Push(const std::shared_ptr<Patch>& p) {
     SetMeshBlock(p->GetMeshBlock());
     AttributeGroup::Push(p);
-    GEO_ENGINE->OpenFile("mesh_block.stl");
-    GEO_ENGINE->Save(GetChart()->GetCoordinateBox(GetMeshBlock()->GetIndexBox()),
-                     std::to_string(GetMeshBlock()->GetGUID()));
-    GEO_ENGINE->CloseFile();
 }
 std::shared_ptr<Patch> DomainBase::Pop() const {
     auto res = AttributeGroup::Pop();
@@ -81,11 +77,16 @@ bool DomainBase::IsInitialized() const { return AttributeGroup::IsInitialized();
 void DomainBase::DoSetUp() { base_type::DoSetUp(); }
 void DomainBase::DoUpdate() { base_type::DoUpdate(); }
 void DomainBase::DoTearDown() { base_type::DoTearDown(); }
+void DomainBase::DoInitialCondition(Real time_now) {
+    GEO_ENGINE->OpenFile("mesh_block.stl");
+    GEO_ENGINE->Save(GetChart()->GetCoordinateBox(GetMeshBlock()->GetIndexBox()),
+                     std::to_string(GetMeshBlock()->GetGUID()));
+    GEO_ENGINE->CloseFile();
+}
 
 void DomainBase::InitialCondition(Real time_now) {
     Update();
-
-    if (CheckBlockInBoundary() < 0) { return; }
+    // FIXME   if (CheckBlockInBoundary() < 0) { return; }
     VERBOSE << " [ " << std::left << std::setw(20) << GetName() << " ] "
             << "Domain::InitialCondition( time_now =" << time_now << ")"
             << " :  " << std::setw(10) << GetMeshBlock()->GetGUID() << GetMeshBlock()->GetIndexBox();

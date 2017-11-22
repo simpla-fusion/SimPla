@@ -56,18 +56,13 @@ class Scenario : public EngineObject {
     std::shared_ptr<TDomain> NewDomain(std::string const &k,
                                        std::shared_ptr<const geometry::GeoObject> const &g = nullptr) {
         auto res = TDomain::New();
-        if (g != nullptr) { res->SetBoundary(g); }
+        res->SetBoundary(g);
         SetDomain(k, res);
-        return res;
+        return std::dynamic_pointer_cast<TDomain>(GetDomain(k));
     };
-    template <typename TDomain>
-    std::shared_ptr<TDomain> NewDomain(std::string const &s_type, std::string const &name,
-                                       std::shared_ptr<const geometry::GeoObject> const &g = nullptr) {
-        auto res = TDomain::New(s_type);
-        if (g != nullptr) { res->SetBoundary(g); }
-        SetDomain(name, res);
-        return res;
-    };
+    std::shared_ptr<DomainBase> NewDomain(std::string const &s_type, std::string const &k,
+                                          std::shared_ptr<const geometry::GeoObject> const &g = nullptr);
+
     std::map<std::string, std::shared_ptr<DomainBase>> &GetDomains();
     std::map<std::string, std::shared_ptr<DomainBase>> const &GetDomains() const;
 

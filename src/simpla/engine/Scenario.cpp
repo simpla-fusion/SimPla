@@ -93,19 +93,23 @@ void Scenario::CheckPoint(size_type step_num) const {
 }
 
 void Scenario::Dump() const {
-    std::ostringstream os;
     auto prefix = GetProperty<std::string>("DumpFilePrefix", GetName());
     auto suffix = GetProperty<std::string>("DumpFileSuffix", "h5");
-    os << prefix << "_dump_" << std::setfill('0') << std::setw(8) << GetStepNumber() << "." << suffix;
-    VERBOSE << std::setw(20) << "Dump : " << os.str();
-    auto dump = data::DataEntry::New(os.str());
-    dump->Set(Serialize());
-    dump->Flush();
+
     auto geo_prefix = GetProperty<std::string>("GeoFilePrefix", GetName());
     auto geo_suffix = GetProperty<std::string>("GeoFileSuffix", "stl");
     GEO_ENGINE->OpenFile(prefix + "." + geo_suffix);
     for (auto const &d : m_pimpl_->m_domains_) { GEO_ENGINE->Save(d.second->GetBoundary(), d.first); }
     GEO_ENGINE->CloseFile();
+
+//    std::ostringstream os;
+//
+//    os << prefix << "_dump_" << std::setfill('0') << std::setw(8) << GetStepNumber() << "." << suffix;
+//    VERBOSE << std::setw(20) << "Dump : " << os.str();
+//    auto dump = data::DataEntry::New(os.str());
+//    dump->Set(Serialize());
+//    dump->Flush();
+
 }
 
 std::shared_ptr<Attribute> Scenario::GetAttribute(std::string const &key) {
@@ -198,7 +202,7 @@ std::shared_ptr<DomainBase> Scenario::SetDomain(std::string const &k, std::share
     if (d != nullptr) {
         m_pimpl_->m_domains_[k] = d;
         m_pimpl_->m_domains_[k]->SetName(k);
-        m_pimpl_->m_domains_[k]->SetChart(m_pimpl_->m_atlas_->GetChart());
+        m_pimpl_->m_domains_[k]->SetChart(GetAtlas()->GetChart());
     }
     return d;
 }
@@ -218,7 +222,12 @@ box_type Scenario::FitBoundingBox() const {
     }
     return bounding_box;
 }
-
+std::shared_ptr<DomainBase> Scenario::NewDomain(std::string const &s_type, std::string const &k,
+                                                std::shared_ptr<const geometry::GeoObject> const &g) {
+    SetDomain(k, DomainBase::New(s_type));
+    GetDomain(k)->SetBoundary(g);
+    return GetDomain(k);
+};
 std::map<std::string, std::shared_ptr<DomainBase>> &Scenario::GetDomains() { return m_pimpl_->m_domains_; };
 std::map<std::string, std::shared_ptr<DomainBase>> const &Scenario::GetDomains() const { return m_pimpl_->m_domains_; }
 void Scenario::TagRefinementCells(Real time_now) {

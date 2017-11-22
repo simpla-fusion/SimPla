@@ -177,7 +177,7 @@ std::shared_ptr<DataEntity> HDF5GetEntity(hid_t obj_id, bool is_attribute) {
     return res;
 }
 
-void HDF5WriteArray(hid_t g_id, std::string const& key, std::shared_ptr<ArrayBase> const& data) {
+void HDF5WriteArray(hid_t g_id, std::string const& key, std::shared_ptr<const ArrayBase> const& data) {
     bool is_exist = H5Lexists(g_id, key.c_str(), H5P_DEFAULT) != 0;
     //            H5Oexists_by_name(loc_id, key.c_str(), H5P_DEFAULT) != 0;
     H5O_info_t g_info;
@@ -232,7 +232,7 @@ void HDF5WriteArray(hid_t g_id, std::string const& key, std::shared_ptr<ArrayBas
     if (m_space != H5S_ALL) H5_ERROR(H5Sclose(m_space));
     if (f_space != H5S_ALL) H5_ERROR(H5Sclose(f_space));
 }
-size_type HDF5SetEntity(hid_t g_id, std::string const& key, std::shared_ptr<DataEntity> const& entity) {
+size_type HDF5SetEntity(hid_t g_id, std::string const& key, std::shared_ptr<const DataEntity> const& entity) {
     ASSERT(g_id > 0);
 
     size_type count = 0;
@@ -243,7 +243,7 @@ size_type HDF5SetEntity(hid_t g_id, std::string const& key, std::shared_ptr<Data
         H5_ERROR(H5Adelete(g_id, key.c_str()));
     }
 
-    if (auto p = std::dynamic_pointer_cast<DataLightT<std::string>>(entity)) {
+    if (auto p = std::dynamic_pointer_cast<const DataLightT<std::string>>(entity)) {
         std::string s_str = p->value();
         auto m_type = H5Tcopy(H5T_C_S1);
         H5_ERROR(H5Tset_size(m_type, s_str.size()));
@@ -255,7 +255,7 @@ size_type HDF5SetEntity(hid_t g_id, std::string const& key, std::shared_ptr<Data
         H5_ERROR(H5Sclose(m_space));
         H5_ERROR(H5Aclose(aid));
         ++count;
-    } else if (auto p = std::dynamic_pointer_cast<DataLightT<std::string*>>(entity)) {
+    } else if (auto p = std::dynamic_pointer_cast<const DataLightT<std::string*>>(entity)) {
         std::vector<char const*> s_array;
         for (auto const& v : p->value()) { s_array.push_back(v.c_str()); }
         hsize_t s = s_array.size();
@@ -270,7 +270,7 @@ size_type HDF5SetEntity(hid_t g_id, std::string const& key, std::shared_ptr<Data
         count = s;
         //        FIXME << "Can not write string array to a HDF5 attribute!" << std::endl
         //              << "  key =" << key << " = " << *p << std::endl;
-    } else if (auto p = std::dynamic_pointer_cast<DataLight>(entity)) {
+    } else if (auto p = std::dynamic_pointer_cast<const DataLight>(entity)) {
         hid_t d_type = -1;
         hid_t d_space;
         count = 1;
@@ -323,7 +323,7 @@ size_type HDF5SetEntity(hid_t g_id, std::string const& key, std::shared_ptr<Data
         H5_ERROR(H5Sclose(d_space));
 
         ++count;
-    } else if (auto p = std::dynamic_pointer_cast<ArrayBase>(entity)) {
+    } else if (auto p = std::dynamic_pointer_cast<const ArrayBase>(entity)) {
         if (auto data = p->pointer()) {
             bool is_exist = H5Lexists(g_id, key.c_str(), H5P_DEFAULT) != 0;
             //            H5Oexists_by_name(loc_id, key.c_str(), H5P_DEFAULT) != 0;
@@ -405,7 +405,7 @@ hid_t HDF5CreateOrOpenGroup(hid_t grp, std::string const& key) {
     }
     return res;
 }
-size_type HDF5Set(hid_t g_id, std::string const& key, std::shared_ptr<DataEntry> node) {
+size_type HDF5Set(hid_t g_id, std::string const& key, std::shared_ptr<const DataEntry> node) {
     if (node == nullptr) { return 0; }
 
     size_type count = 0;
@@ -413,7 +413,7 @@ size_type HDF5Set(hid_t g_id, std::string const& key, std::shared_ptr<DataEntry>
         case DataEntry::DN_ARRAY:
         case DataEntry::DN_TABLE: {
             hid_t sub_gid = HDF5CreateOrOpenGroup(g_id, key);
-            node->Foreach([&](std::string k, std::shared_ptr<DataEntry> const& n) { count += HDF5Set(sub_gid, k, n); });
+            node->Foreach([&](std::string k, auto const& n) { count += HDF5Set(sub_gid, k, n); });
         } break;
         case DataEntry::DN_ENTITY:
             count = HDF5SetEntity(g_id, key, node->GetEntity());
@@ -423,14 +423,14 @@ size_type HDF5Set(hid_t g_id, std::string const& key, std::shared_ptr<DataEntry>
     }
     return count;
 }
-size_type HDF5Add(hid_t g_id, std::string const& key, std::shared_ptr<DataEntry> node) {
+size_type HDF5Add(hid_t g_id, std::string const& key, std::shared_ptr<const DataEntry> node) {
     if (node == nullptr) { return 0; }
     size_type count = 0;
     switch (node->type()) {
         case DataEntry::DN_ARRAY:
         case DataEntry::DN_TABLE: {
             hid_t sub_gid = HDF5CreateOrOpenGroup(g_id, key);
-            node->Foreach([&](std::string k, std::shared_ptr<DataEntry> const& n) { count += HDF5Set(sub_gid, k, n); });
+            node->Foreach([&](std::string k, auto const& n) { count += HDF5Set(sub_gid, k, n); });
         } break;
         case DataEntry::DN_ENTITY:
             count = HDF5SetEntity(g_id, key, node->GetEntity());

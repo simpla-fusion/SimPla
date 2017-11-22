@@ -95,11 +95,10 @@ class Atlas : public EngineObject {
     };
 
     template <typename U, typename... Args>
-    std::shared_ptr<geometry::Chart> NewChart(Args &&... args) {
+    std::shared_ptr<const geometry::Chart> NewChart(Args &&... args) {
         static_assert(std::is_base_of<geometry::Chart, U>::value, "illegal chart type!");
-        auto res = U::New(std::forward<Args>(args)...);
-        SetChart(res);
-        return res;
+        SetChart(U::New(std::forward<Args>(args)...));
+        return GetChart();
     };
     std::shared_ptr<const geometry::Chart> GetChart() const;
     void SetChart(std::shared_ptr<const geometry::Chart> const &);

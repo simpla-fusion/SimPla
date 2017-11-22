@@ -290,21 +290,22 @@ std::shared_ptr<TopoDS_Face> OCEShapeCast<TopoDS_Face, Face>::eval(std::shared_p
 template <>
 std::shared_ptr<TopoDS_Solid> OCEShapeCast<TopoDS_Solid, Solid>::eval(std::shared_ptr<const Solid> const &solid) {
     std::shared_ptr<TopoDS_Solid> res = nullptr;
-    //    point2d_type p_min, p_max;
-    //    std::tie(p_min, p_max) = face->GetParameterRange();
-    //    if (auto plane = std::dynamic_pointer_cast<const gPlane>(face->GetSurface())) {
-    //        gp_Pln g_plane{make_point(face->GetAxis().o), make_dir(face->GetAxis().z)};
-    //        res = std::make_shared<TopoDS_Face>(
-    //            BRepBuilderAPI_MakeFace(g_plane, p_min[0], p_max[0], p_min[1], p_max[1]).Face());
-    //    } else {
-    //        UNIMPLEMENTED;
-    //    }
+    if (solid == nullptr) { return res; }
+    point_type p_min, p_max;
+    std::tie(p_min, p_max) = solid->GetParameterRange();
+    if (auto cylinder = std::dynamic_pointer_cast<const gCylinder>(solid->GetBody())) {
+        res = std::make_shared<TopoDS_Solid>(BRepPrimAPI_MakeCylinder(
+            make_axis(solid->GetAxis()), cylinder->GetRadius(), cylinder->GetHeight(), p_max[2] - p_min[2]));
+    } else {
+        UNIMPLEMENTED;
+    }
     return res;
 };
 template <>
 std::shared_ptr<TopoDS_Shape> OCEShapeCast<TopoDS_Shape, GeoObject>::eval(std::shared_ptr<const GeoObject> const &g) {
     std::shared_ptr<TopoDS_Shape> res = nullptr;
-    if (auto oce = std::dynamic_pointer_cast<GeoObjectOCE const>(g)) {
+    if (g == nullptr) {
+    } else if (auto oce = std::dynamic_pointer_cast<GeoObjectOCE const>(g)) {
         res = oce->GetShape();
     } else if (auto c = std::dynamic_pointer_cast<Edge const>(g)) {
         res = oce_cast<TopoDS_Edge>(c);
@@ -320,9 +321,9 @@ std::shared_ptr<TopoDS_Shape> OCEShapeCast<TopoDS_Shape, GeoObject>::eval(std::s
     //        res = oce_cast<TopoDS_Solid>(b);
     //    }
     else {
-        LOGGER << *g;
         UNIMPLEMENTED;
     }
+
     return res;
 };
 
@@ -750,10 +751,15 @@ void GeoEngineOCE::FlushFile() {
     };
 };
 void GeoEngineOCE::Save(std::shared_ptr<const GeoObject> const &geo, std::string const &name_s) const {
-    if (geo == nullptr) { return; }
+    CHECK(name_s);
+    if (geo == nullptr) {
+        return;
+    } else {
+        CHECK(*geo->Serialize());
+    }
+    auto oce_shape = oce_cast<TopoDS_Shape>(geo);
+    ASSERT(oce_shape != nullptr);
     ASSERT(!m_pimpl_->m_prefix_.empty());
-    CHECK(*geo->Serialize());
-    auto oce_shape = GeoObjectOCE(geo).GetShape();
     std::string name = name_s;
     if (name.empty()) { name = std::to_string(oce_shape->HashCode(std::numeric_limits<int>::max())); }
 

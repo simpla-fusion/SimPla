@@ -61,7 +61,7 @@ class DomainBase : public EngineObject, public AttributeGroup {
     design_pattern::Signal<void(DomainBase *, std::shared_ptr<const simpla::data::DataEntry> const &)> OnDeserialize;
     design_pattern::Signal<void(DomainBase const *, std::shared_ptr<simpla::data::DataEntry> &)> OnSerialize;
 
-    virtual void DoInitialCondition(Real time_now) {}
+    virtual void DoInitialCondition(Real time_now);
 
     design_pattern::Signal<void(DomainBase *, Real)> PreInitialCondition;
     design_pattern::Signal<void(DomainBase *, Real)> PostInitialCondition;
@@ -221,6 +221,8 @@ template <typename TChart, template <typename> class... Policies>
 void Domain<TChart, Policies...>::DoInitialCondition(Real time_now) {
     //    if (CheckBlockInBoundary() == 0)
     {
+        DomainBase::DoInitialCondition(time_now);
+
         InitializeAttribute(&m_node_tag_);
         InitializeAttribute(&m_edge_frac_);
         m_edge_frac_[0].Fill(1.0);
@@ -228,8 +230,7 @@ void Domain<TChart, Policies...>::DoInitialCondition(Real time_now) {
         m_edge_frac_[2].Fill(1.0);
 
         //        geometry::CutCellTagNode(&m_node_tag_, &m_edge_frac_[0], GetChart(),
-        //        GetMeshBlock()->GetIndexBox(),
-        //                                 GetBoundary(), 0b001);
+        //        GetMeshBlock()->GetIndexBox(), GetBoundary(), 0b001);
     }
 }
 

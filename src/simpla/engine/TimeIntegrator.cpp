@@ -15,10 +15,9 @@ void TimeIntegrator::InitialCondition(Real time_now) {
     Update();
     GetAtlas()->Foreach([&](std::shared_ptr<Patch> const &patch) {
         if (patch == nullptr) { return; }
-
         for (auto &item : GetDomains()) {
             item.second->Push(patch->Pop());
-            if (item.second->CheckBlockInBoundary() >= 0) { item.second->InitialCondition(time_now); }
+            item.second->InitialCondition(time_now);
             patch->Push(item.second->Pop());
         }
 

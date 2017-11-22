@@ -19,7 +19,6 @@ struct DataEntryHDF5 : public DataEntry {
     SP_DATA_ENTITY_HEAD(DataEntry, DataEntryHDF5, h5)
 
    protected:
-
    public:
     int Connect(std::string const& authority, std::string const& path, std::string const& query,
                 std::string const& fragment) override;
@@ -33,17 +32,18 @@ struct DataEntryHDF5 : public DataEntry {
     using base_type::Get;
     std::shared_ptr<DataEntry> CreateNode(eNodeType e_type) const override;
     size_type size() const override;
-    size_type Set(std::string const& uri, std::shared_ptr<DataEntry> const& v) override;
-    size_type Set(index_type s, std::shared_ptr<DataEntry> const& v) override;
-    size_type Add(std::string const& uri, std::shared_ptr<DataEntry> const& v) override;
-    size_type Add(index_type s, std::shared_ptr<DataEntry> const& v) override;
+    size_type Set(std::string const& uri, std::shared_ptr<const DataEntry> const& v) override;
+    size_type Set(index_type s, std::shared_ptr<const DataEntry> const& v) override;
+
+    size_type Add(std::string const& uri, std::shared_ptr<const DataEntry> const& v) override;
+    size_type Add(index_type s, std::shared_ptr<const DataEntry> const& v) override;
     size_type Delete(std::string const& s) override;
     size_type Delete(index_type s) override;
     std::shared_ptr<const DataEntry> Get(std::string const& uri) const override;
     std::shared_ptr<const DataEntry> Get(index_type s) const override;
     std::shared_ptr<DataEntry> Get(std::string const& uri) override;
     std::shared_ptr<DataEntry> Get(index_type s) override;
-    void Foreach(std::function<void(std::string const&, std::shared_ptr<DataEntry> const&)> const& f) override;
+    //    void Foreach(std::function<void(std::string const&, std::shared_ptr<DataEntry> const&)> const& f) override;
     void Foreach(
         std::function<void(std::string const&, std::shared_ptr<const DataEntry> const&)> const& f) const override;
 
@@ -298,7 +298,7 @@ void DataEntryHDF5::Clear() {
     if (*m_group_ != -1) {}
 }
 
-size_type DataEntryHDF5::Set(std::string const& uri, const std::shared_ptr<DataEntry>& v) {
+size_type DataEntryHDF5::Set(std::string const& uri, const std::shared_ptr<const DataEntry>& v) {
     if (uri.empty() || v == nullptr) { return 0; }
     if (uri[0] == SP_URL_SPLIT_CHAR) { return Root()->Set(uri.substr(1), v); }
 
@@ -320,7 +320,7 @@ size_type DataEntryHDF5::Set(std::string const& uri, const std::shared_ptr<DataE
     }
     return count;
 }
-size_type DataEntryHDF5::Add(std::string const& uri, const std::shared_ptr<DataEntry>& v) {
+size_type DataEntryHDF5::Add(std::string const& uri, const std::shared_ptr<const DataEntry>& v) {
     if (uri.empty() || v == nullptr) { return 0; }
     if (uri[0] == SP_URL_SPLIT_CHAR) { return Root()->Set(uri.substr(1), v); }
 
@@ -344,8 +344,8 @@ size_type DataEntryHDF5::Add(std::string const& uri, const std::shared_ptr<DataE
     }
     return count;
 }
-
-void DataEntryHDF5::Foreach(std::function<void(std::string const&, std::shared_ptr<DataEntry> const&)> const& fun) {
+void DataEntryHDF5::Foreach(
+    std::function<void(std::string const&, std::shared_ptr<const DataEntry> const&)> const& fun) const {
     if (*m_group_ == -1) { return; };
     H5G_info_t g_info;
     H5_ERROR(H5Gget_info(*m_group_, &g_info));
@@ -370,14 +370,16 @@ void DataEntryHDF5::Foreach(std::function<void(std::string const&, std::shared_p
         fun(std::string(buffer), Get(std::string(buffer)));
     }
 }
-
-void DataEntryHDF5::Foreach(
-    std::function<void(std::string const&, std::shared_ptr<const DataEntry> const&)> const& fun) const {
-    const_cast<this_type*>(this)->Foreach(
-        [&](std::string const& k, std::shared_ptr<DataEntry> const& v) { fun(k, v); });
+//void DataEntryHDF5::Foreach(std::function<void(std::string const&, std::shared_ptr<DataEntry> const&)> const& fun) {
+//    const_cast<this_type*>(this)->Foreach(
+//        [&](std::string const& k, std::shared_ptr<DataEntry> const& v) { fun(k, v); });
+//}
+size_type DataEntryHDF5::Set(index_type s, const std::shared_ptr<const DataEntry>& v) {
+    return Set(std::to_string(s), v);
 }
-size_type DataEntryHDF5::Set(index_type s, const std::shared_ptr<DataEntry>& v) { return Set(std::to_string(s), v); }
-size_type DataEntryHDF5::Add(index_type s, const std::shared_ptr<DataEntry>& v) { return Add(std::to_string(s), v); }
+size_type DataEntryHDF5::Add(index_type s, const std::shared_ptr<const DataEntry>& v) {
+    return Add(std::to_string(s), v);
+}
 size_type DataEntryHDF5::Delete(index_type s) { return Delete(std::to_string(s)); }
 std::shared_ptr<const DataEntry> DataEntryHDF5::Get(index_type s) const { return Get(std::to_string(s)); }
 std::shared_ptr<DataEntry> DataEntryHDF5::Get(index_type s) { return Get(std::to_string(s)); }
