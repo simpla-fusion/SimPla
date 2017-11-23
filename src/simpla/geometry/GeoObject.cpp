@@ -81,8 +81,8 @@ std::shared_ptr<simpla::data::DataEntry> GeoObjectHandle::Serialize() const {
     res->Set("Geometry", m_geo_entity_->Serialize());
     return res;
 };
-std::shared_ptr<const GeoEntity> GeoObjectHandle::GetBasis() const { return m_geo_entity_; }
-void GeoObjectHandle::SetBasis(std::shared_ptr<const GeoEntity> const &g) { m_geo_entity_ = g; }
+std::shared_ptr<const GeoEntity> GeoObjectHandle::GetBasisGeometry() const { return m_geo_entity_; }
+void GeoObjectHandle::SetBasisGeometry(std::shared_ptr<const GeoEntity> const &g) { m_geo_entity_ = g; }
 // std::shared_ptr<GeoObject> GeoObject::GetBoundary() const { return nullptr; }
 
 // Real GeoObject::Measure() const {

@@ -15,17 +15,13 @@ Solid::Solid(std::shared_ptr<const gBody> const &body, Axis const &axis, point_t
              point_type const &u_max)
     : Solid(body, axis, box_type{u_min, u_max}) {}
 Solid::Solid(std::shared_ptr<const gBody> const &body, Axis const &axis, box_type const &b)
-    : GeoObject(axis), m_body_(body), m_range_{b} {};
-void Solid::Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) {
-    base_type::Deserialize(cfg);
-    m_body_ = GeoEntity::CreateAs<gBody>(cfg->Get("gBody"));
-    m_range_ = cfg->GetValue("ParameterRange", m_range_);
-};
-std::shared_ptr<simpla::data::DataEntry> Solid::Serialize() const {
-    auto res = base_type::Serialize();
-    if (m_body_ != nullptr) res->Set("gBody", m_body_->Serialize());
-    res->SetValue("ParameterRange", m_range_);
-    return res;
-};
+    : GeoObjectHandle(body, axis){};
+void Solid::SetBody(std::shared_ptr<const gBody> const &s) {
+    GeoObjectHandle::SetBasisGeometry(std::dynamic_pointer_cast<const GeoEntity>(s));
+}
+std::shared_ptr<const gBody> Solid::GetBody() const {
+    return std::dynamic_pointer_cast<const gBody>(GeoObjectHandle::GetBasisGeometry());
+}
+
 }  // namespace geometry
 }  // namespace simpla

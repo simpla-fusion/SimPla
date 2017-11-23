@@ -96,7 +96,7 @@ class GeoObject : public data::Serializable,
     SP_SERIALIZABLE_HEAD(_BASE_NAME_, _CLASS_NAME_)                                                               \
    protected:                                                                                                     \
     _CLASS_NAME_() = default;                                                                                     \
-    _CLASS_NAME_(Axis const &axis) : base_type(axis){};                                                           \
+    explicit _CLASS_NAME_(Axis const &axis) : base_type(axis){};                                                  \
     _CLASS_NAME_(_CLASS_NAME_ const &other) = default;                                                            \
                                                                                                                   \
    public:                                                                                                        \
@@ -120,7 +120,7 @@ class GeoObject : public data::Serializable,
     }                                                                                                     \
                                                                                                           \
    private:                                                                                               \
-    static bool _is_registered;                                                                           \
+    static int _is_registered;                                                                            \
                                                                                                           \
    public:                                                                                                \
     static std::string RegisterName() { return __STRING(_CLASS_NAME_); }                                  \
@@ -161,12 +161,14 @@ class GeoObject : public data::Serializable,
     }
 
 #define SP_GEO_OBJECT_REGISTER(_CLASS_NAME_) \
-    bool _CLASS_NAME_::_is_registered =      \
+    int _CLASS_NAME_::_is_registered =       \
         simpla::Factory<GeoObject>::RegisterCreator<_CLASS_NAME_>(_CLASS_NAME_::RegisterName());
 
 struct GeoEntity;
+
 struct GeoObjectHandle : public GeoObject {
     SP_GEO_OBJECT_HEAD(GeoObject, GeoObjectHandle);
+
     void Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) override;
     std::shared_ptr<simpla::data::DataEntry> Serialize() const override;
 
@@ -174,8 +176,8 @@ struct GeoObjectHandle : public GeoObject {
     GeoObjectHandle(std::shared_ptr<const GeoEntity> const &, Axis const &axis = Axis{});
 
    public:
-    std::shared_ptr<const GeoEntity> GetBasis() const;
-    void SetBasis(std::shared_ptr<const GeoEntity> const &);
+    std::shared_ptr<const GeoEntity> GetBasisGeometry() const;
+    void SetBasisGeometry(std::shared_ptr<const GeoEntity> const &);
     SP_PROPERTY(box_type, ParameterRange);
 
    private:
