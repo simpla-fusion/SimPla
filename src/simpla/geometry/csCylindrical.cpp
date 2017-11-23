@@ -60,10 +60,10 @@ std::shared_ptr<Face> csCylindrical::GetCoordinateFace(point_type const &o, int 
             surface = gPlane::New();
         } break;
         case ZAxis:
-            surface = gDisk::New(radius);
+            surface = gDisk::New();
             break;
         case RAxis:
-            surface = gCylindricalSurface::New(radius);
+            surface = gCylindricalSurface::New();
             break;
         default:
             break;

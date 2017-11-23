@@ -8,39 +8,32 @@
 
 namespace simpla {
 namespace geometry {
-std::shared_ptr<GeoEntity> gMakeRevolution(std::shared_ptr<const GeoEntity> const& geo, vector_type const& Nr,
-                                           vector_type const& Nz) {
-    std::shared_ptr<GeoEntity> res = nullptr;
-
-    if (auto curve = std::dynamic_pointer_cast<const gCurve>(geo)) {
-        res = gSweepingSurface::New(curve, gCircle::New(std::sqrt(dot(Nr, Nr))), Nr, cross(Nz, Nr));
-    } else if (auto surface = std::dynamic_pointer_cast<const gSurface>(geo)) {
-        res = gSweepingBody::New(surface, gCircle::New(std::sqrt(dot(Nr, Nr))), Nr, cross(Nz, Nr));
-    }
+gSweeping::gSweeping(std::shared_ptr<const GeoEntity> const& basis, std::shared_ptr<const gCurve> const& curve,
+                     Axis const& r_axis)
+    : m_basis_(basis), m_path_(curve), m_r_axis_(r_axis) {}
+void gSweeping::Deserialize(std::shared_ptr<const simpla::data::DataEntry> const& cfg) {
+    base_type::Deserialize(cfg);
+    m_r_axis_.Deserialize(cfg->Get("RelativeAxis"));
+    SetBasis(GeoEntity::Create(cfg->Get("Basis")));
+    SetPath(gCurve::Create(cfg->Get("Path")));
+};
+std::shared_ptr<simpla::data::DataEntry> gSweeping::Serialize() const {
+    auto res = base_type::Serialize();
+    res->Set("RelativeAxis", GetRelativeAxis().Serialize());
+    res->Set("Basis", GetBasis()->Serialize());
+    res->Set("Path", GetPath()->Serialize());
     return res;
-}
+};
+void gSweeping::SetRelativeAxis(Axis const& c) { m_r_axis_ = c; };
+Axis const& gSweeping::GetRelativeAxis() const { return m_r_axis_; };
+void gSweeping::SetPath(std::shared_ptr<const gCurve> const& c) { m_path_ = c; };
+std::shared_ptr<const gCurve> gSweeping::GetPath() const { return m_path_; };
+void gSweeping::SetBasis(std::shared_ptr<const GeoEntity> const& b) { m_basis_ = b; };
+std::shared_ptr<const GeoEntity> gSweeping::GetBasis() const { return m_basis_; };
 
-std::shared_ptr<GeoEntity> gMakePrism(std::shared_ptr<const GeoEntity> const& geo, vector_type const& Nx) {
-    std::shared_ptr<GeoEntity> res = nullptr;
-
-    if (auto curve = std::dynamic_pointer_cast<const gCurve>(geo)) {
-        res = gSweepingSurface::New(curve, gLine::New(), Nx, cross(vector_type{0, 0, 2}, Nx));
-    } else if (auto surface = std::dynamic_pointer_cast<const gSurface>(geo)) {
-        res = gSweepingBody::New(surface, gLine::New(), Nx, cross(vector_type{0, 0, 2}, Nx));
-    }
-    return res;
-}
-
-std::shared_ptr<GeoEntity> gMakePipe(std::shared_ptr<const GeoEntity> const& geo,
-                                     std::shared_ptr<const gCurve> const& path) {
-    std::shared_ptr<GeoEntity> res = nullptr;
-    if (auto curve = std::dynamic_pointer_cast<const gCurve>(geo)) {
-        res = gSweepingSurface::New(curve, path, vector_type{1, 0, 0}, vector_type{0, 1, 0});
-    } else if (auto surface = std::dynamic_pointer_cast<const gSurface>(geo)) {
-        res = gSweepingBody::New(surface, path, vector_type{1, 0, 0}, vector_type{0, 1, 0});
-    }
-    return res;
-}
+point_type gSweeping::xyz(Real u, Real v, Real w) const {
+    return m_r_axis_.xyz(m_basis_->xyz(u, v, 0)) + m_path_->xyz(w);
+};
 
 }  // namespace geometry {
 }  // namespace simpla {

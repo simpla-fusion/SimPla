@@ -10,6 +10,8 @@ namespace geometry {
 
 Edge::Edge(Axis const &axis, std::shared_ptr<const gCurve> const &curve, Real u_min, Real u_max)
     : Edge(axis, curve, std::tuple<Real, Real>{u_min, u_max}){};
+Edge::Edge(std::shared_ptr<const gCurve> const &curve, Real u_min, Real u_max)
+    : Edge(Axis{}, curve, std::tuple<Real, Real>{u_min, u_max}){};
 Edge::Edge(Axis const &axis, std::shared_ptr<const gCurve> const &curve, std::tuple<Real, Real> const &range)
     : GeoObject(axis), m_curve_(curve), m_range_{range} {};
 void Edge::SetCurve(std::shared_ptr<const gCurve> const &s) { m_curve_ = s; }

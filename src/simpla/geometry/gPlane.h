@@ -10,7 +10,6 @@ namespace simpla {
 namespace geometry {
 struct gPlane : public gSurface {
     SP_GEO_ENTITY_HEAD(gSurface, gPlane, Plane);
-
     virtual point2d_type xy(Real u, Real v) const { return point2d_type{u, v}; };
     point_type xyz(Real u, Real v) const override { return point_type{u, v, 0}; };
 };

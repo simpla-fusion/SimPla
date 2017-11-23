@@ -5,11 +5,10 @@
 
 #include <simpla/utilities/ParsingURI.h>
 #include <memory>
-
 #include "BoxUtilities.h"
 #include "GeoAlgorithm.h"
 #include "GeoEngine.h"
-
+#include "GeoEntity.h"
 namespace simpla {
 namespace geometry {
 GeoObject::GeoObject() = default;
@@ -19,21 +18,6 @@ GeoObject::GeoObject(Axis const &axis) : m_axis_(axis){};
 std::shared_ptr<const GeoObject> GeoObject::Self() const { return shared_from_this(); }
 std::shared_ptr<GeoObject> GeoObject::Self() { return shared_from_this(); }
 
-// std::shared_ptr<GeoObject> GeoObject::New(std::string const &s) {
-//    std::shared_ptr<GeoObject> res = nullptr;
-//    if (s.find(':') == std::string::npos) {
-//        res = Factory<GeoObject>::New(s);
-//    } else {
-//        res = GEO_ENGINE->Load(s);
-//    }
-//    return res;
-//}
-//
-// std::shared_ptr<GeoObject> GeoObject::New(std::shared_ptr<data::DataEntry> const &cfg) {
-//    auto res = Factory<GeoObject>::New(cfg->GetValue<std::string>("_REGISTER_NAME_", ""));
-//    res->Deserialize(cfg);
-//    return res;
-//};
 std::shared_ptr<data::DataEntry> GeoObject::Serialize() const {
     auto res = base_type::Serialize();
     res->Set("Axis", m_axis_.Serialize());
@@ -86,6 +70,19 @@ std::shared_ptr<GeoObject> GeoObject::GetIntersection(std::shared_ptr<const GeoO
     return GEO_ENGINE->GetIntersection(Self(), g, tolerance);
 }
 
+GeoObjectHandle::GeoObjectHandle(std::shared_ptr<const GeoEntity> const &geo, Axis const &axis)
+    : GeoObject(axis), m_geo_entity_(geo) {}
+void GeoObjectHandle::Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) {
+    base_type::Deserialize(cfg);
+    m_geo_entity_ = GeoEntity::Create(cfg->Get("Geometry"));
+}
+std::shared_ptr<simpla::data::DataEntry> GeoObjectHandle::Serialize() const {
+    auto res = base_type::Serialize();
+    res->Set("Geometry", m_geo_entity_->Serialize());
+    return res;
+};
+std::shared_ptr<const GeoEntity> GeoObjectHandle::GetBasis() const { return m_geo_entity_; }
+void GeoObjectHandle::SetBasis(std::shared_ptr<const GeoEntity> const &g) { m_geo_entity_ = g; }
 // std::shared_ptr<GeoObject> GeoObject::GetBoundary() const { return nullptr; }
 
 // Real GeoObject::Measure() const {

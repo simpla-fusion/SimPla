@@ -15,6 +15,7 @@ struct Edge : public GeoObject {
 
     void Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) override;
     std::shared_ptr<simpla::data::DataEntry> Serialize() const override;
+    explicit Edge(std::shared_ptr<const gCurve> const &curve, Real l = 0, Real w = 1);
 
     explicit Edge(Axis const &axis, std::shared_ptr<const gCurve> const &curve, Real l = 0, Real w = 1);
     explicit Edge(Axis const &axis, std::shared_ptr<const gCurve> const &curve, std::tuple<Real, Real> const &range);

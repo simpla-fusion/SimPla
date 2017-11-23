@@ -5,7 +5,7 @@
 
 #include <simpla/algebra/nTuple.h>
 #include <simpla/data/Data.h>
-#include <simpla/geometry/Revolution.h>
+#include <simpla/geometry/Sweeping.h>
 #include <simpla/geometry/gBoundedCurve.h>
 #include <simpla/geometry/gPolygon.h>
 #include <simpla/numeric/Interpolation.h>

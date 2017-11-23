@@ -6,11 +6,11 @@
 #include <simpla/engine/EBDomain.h>
 #include <simpla/engine/Engine.h>
 #include <simpla/geometry/Box.h>
+#include <simpla/geometry/Edge.h>
 #include <simpla/geometry/GeoEngine.h>
-#include <simpla/geometry/Revolution.h>
+#include <simpla/geometry/Sweeping.h>
 #include <simpla/geometry/csCartesian.h>
 #include <simpla/geometry/csCylindrical.h>
-#include <simpla/geometry/gSweeping.h>
 #include <simpla/mesh/CoRectMesh.h>
 #include <simpla/mesh/RectMesh.h>
 #include <simpla/predefine/device/ICRFAntenna.h>
@@ -42,9 +42,9 @@ int main(int argc, char** argv) {
     scenario->GetAtlas()->SetPeriodicDimensions({1, 1, 1});
     scenario->GetAtlas()->SetBoundingBox(box_type{{1.2, -1.4, -PI / 2}, {1.8, 1.4, PI / 2}});
     auto tokamak = sp::Tokamak::New("/home/salmon/workspace/SimPla/scripts/gfile/g038300.03900");
-//    auto g_boundary = sg::MakeRevolution(tokamak->Boundary(), sg::Axis{}, TWOPI);
+    //    auto g_boundary = sg::MakeRevolution(tokamak->Boundary(), sg::Axis{}, TWOPI);
     auto d_limiter = scenario->NewDomain<domain::Maxwell<domain_type>>(
-        "Limiter", sg::Solid::New(sg::gMakeRevolution(tokamak->Limiter(), vector_type{1, 0, 0}, vector_type{0, 0, 1})));
+        "Limiter", sg::MakeRevolution(tokamak->Limiter(), vector_type{0, 1, 0}));
     d_limiter->AddPostInitialCondition([=](auto* self, Real time_now) {
         self->B = [&](point_type const& x) {
             return point_type{std::cos(2 * PI * x[1] / 60) * std::cos(2 * PI * x[2] / 50),

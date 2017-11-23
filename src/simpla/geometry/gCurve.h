@@ -12,6 +12,7 @@ struct gCurve : public GeoEntity {
     SP_GEO_ENTITY_ABS_HEAD(GeoEntity, gCurve)
     virtual bool IsClosed() const { return false; }
     virtual point_type xyz(Real u) const = 0;
+    point_type xyz(Real u, Real v, Real w) const override { return xyz(u); };
 };
 
 struct gCurve2D : public gCurve {

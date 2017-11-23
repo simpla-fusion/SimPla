@@ -10,7 +10,7 @@ namespace simpla {
 namespace geometry {
 struct gLine : public gCurve {
     SP_GEO_ENTITY_HEAD(gCurve, gLine, Line)
-    gLine(vector_type const& direction) : m_Direction_(direction) {}
+    explicit gLine(vector_type const& direction) : m_Direction_(direction) {}
     SP_PROPERTY(vector_type, Direction) = {1, 0, 0};
     point_type xyz(Real u) const override { return m_Direction_ * u; };
 };

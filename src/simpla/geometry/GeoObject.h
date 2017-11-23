@@ -40,7 +40,7 @@ class GeoObject : public data::Serializable,
    protected:
     GeoObject();
     explicit GeoObject(Axis const &axis);
-    GeoObject(GeoObject const &other) ;
+    GeoObject(GeoObject const &other);
 
    public:
     ~GeoObject() override;
@@ -91,6 +91,7 @@ class GeoObject : public data::Serializable,
    protected:
     Axis m_axis_;
 };
+
 #define SP_GEO_OBJECT_ABS_HEAD(_BASE_NAME_, _CLASS_NAME_)                                                         \
     SP_SERIALIZABLE_HEAD(_BASE_NAME_, _CLASS_NAME_)                                                               \
    protected:                                                                                                     \
@@ -163,6 +164,23 @@ class GeoObject : public data::Serializable,
     bool _CLASS_NAME_::_is_registered =      \
         simpla::Factory<GeoObject>::RegisterCreator<_CLASS_NAME_>(_CLASS_NAME_::RegisterName());
 
+struct GeoEntity;
+struct GeoObjectHandle : public GeoObject {
+    SP_GEO_OBJECT_HEAD(GeoObject, GeoObjectHandle);
+    void Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) override;
+    std::shared_ptr<simpla::data::DataEntry> Serialize() const override;
+
+   protected:
+    GeoObjectHandle(std::shared_ptr<const GeoEntity> const &, Axis const &axis = Axis{});
+
+   public:
+    std::shared_ptr<const GeoEntity> GetBasis() const;
+    void SetBasis(std::shared_ptr<const GeoEntity> const &);
+    SP_PROPERTY(box_type, ParameterRange);
+
+   private:
+    std::shared_ptr<const GeoEntity> m_geo_entity_ = nullptr;
+};
 }  // namespace geometry
 }  // namespace simpla
 

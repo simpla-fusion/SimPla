@@ -8,7 +8,7 @@
 #include <simpla/SIMPLA_config.h>
 #include <simpla/utilities/Constants.h>
 #include "gBody.h"
-#include "gConic.h"
+#include "gCone.h"
 #include "gSurface.h"
 
 namespace simpla {
@@ -18,9 +18,6 @@ namespace geometry {
 */
 struct gCylinder : public gBody {
     SP_GEO_ENTITY_HEAD(gBody, gCylinder, Cylinder)
-    gCylinder(Real radius, Real height) : m_Radius_(radius), m_Height_(height) {}
-    SP_PROPERTY(Real, Radius) = 1.0;
-    SP_PROPERTY(Real, Height) = 1.0;
     point_type xyz(Real u, Real v, Real w) const override { return point_type{u * std::cos(v), u * std::sin(v), w}; };
 };
 struct gCylindricalSurface : public gConicSurface {

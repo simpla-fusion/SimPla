@@ -8,6 +8,8 @@ namespace geometry {
 
 Face::Face(Axis const &axis, std::shared_ptr<const gSurface> const &surface, Real u_max, Real v_max)
     : Face(axis, surface, 0, 0, u_max, v_max) {}
+Face::Face(std::shared_ptr<const gSurface> const &surface) : Face(Axis{}, surface, 0, 0, 1, 1) {}
+
 Face::Face(Axis const &axis, std::shared_ptr<const gSurface> const &surface, Real u_min, Real u_max, Real v_min,
            Real v_max)
     : Face(axis, surface, std::tuple<point2d_type, point2d_type>{{u_min, v_min}, {u_max, v_max}}){};

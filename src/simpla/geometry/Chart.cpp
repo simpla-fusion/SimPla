@@ -6,7 +6,7 @@
 #include "Edge.h"
 #include "Face.h"
 #include "Solid.h"
-#include "Sweep.h"
+#include "Sweeping.h"
 namespace simpla {
 namespace geometry {
 
@@ -57,7 +57,7 @@ std::shared_ptr<Face> Chart::GetCoordinateFace(point_type const &o, int normal, 
         MakeSweep(GetCoordinateEdge(o, (normal + 1) % 3, u), GetCoordinateEdge(o, (normal + 2) % 3, v)));
 }
 std::shared_ptr<Solid> Chart::GetCoordinateBox(point_type const &o, Real u, Real v, Real w) const {
-    return std::dynamic_pointer_cast<Solid>(MakeSweep(GetCoordinateFace(o, 2, u, v), GetCoordinateEdge(o, 2, w)));
+    return MakeSweep(GetCoordinateFace(o, 2, u, v), GetCoordinateEdge(o, 2, w));
 }
 std::shared_ptr<Solid> Chart::GetCoordinateBox(box_type const &b) const {
     vector_type l = std::get<1>(b) - std::get<0>(b);

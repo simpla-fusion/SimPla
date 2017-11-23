@@ -84,6 +84,7 @@ struct GeoEntity : public data::Serializable, public data::Configurable, public 
     ~GeoEntity() override;
     std::string FancyTypeName() const override;
 
+    virtual point_type xyz(Real u, Real v, Real w) const = 0;
     virtual GeoEntity *CopyP() const = 0;
     std::shared_ptr<GeoEntity> Copy() const { return std::shared_ptr<GeoEntity>(CopyP()); }
 };
@@ -91,7 +92,7 @@ struct GeoEntity : public data::Serializable, public data::Configurable, public 
     SP_SERIALIZABLE_HEAD(_BASE_NAME_, _CLASS_NAME_)                                                  \
    protected:                                                                                        \
     _CLASS_NAME_() = default;                                                                        \
-    _CLASS_NAME_(_CLASS_NAME_ const &) = default;                                                     \
+    _CLASS_NAME_(_CLASS_NAME_ const &) = default;                                                    \
                                                                                                      \
    public:                                                                                           \
     ~_CLASS_NAME_() override = default;                                                              \

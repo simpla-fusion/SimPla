@@ -6,7 +6,7 @@
 #define SIMPLA_GPARABOLA_H
 
 #include <simpla/data/Serializable.h>
-#include "gConic.h"
+#include "gCone.h"
 
 namespace simpla {
 namespace geometry {

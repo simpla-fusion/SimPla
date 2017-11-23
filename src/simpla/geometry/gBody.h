@@ -13,7 +13,6 @@ namespace geometry {
 
 struct gBody : public GeoEntity {
     SP_GEO_ENTITY_ABS_HEAD(GeoEntity, gBody)
-    virtual point_type xyz(Real u, Real v, Real w) const = 0;
 };
 
 }  // namespace geometry

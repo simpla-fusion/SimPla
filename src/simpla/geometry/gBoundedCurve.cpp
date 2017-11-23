@@ -12,7 +12,6 @@ void gBoundedCurve2D::Deserialize(std::shared_ptr<const simpla::data::DataEntry>
 }
 std::shared_ptr<simpla::data::DataEntry> gBoundedCurve2D::Serialize() const {
     auto res = base_type::Serialize();
-    UNIMPLEMENTED;
     //    res->SetValue("Data", m_data_);
     return res;
 }

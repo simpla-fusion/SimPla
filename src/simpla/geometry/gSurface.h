@@ -19,10 +19,10 @@ namespace geometry {
 struct gSurface : public GeoEntity {
     SP_GEO_ENTITY_ABS_HEAD(GeoEntity, gSurface);
     virtual bool IsClosed() const { return false; }
+    point_type xyz(Real u, Real v, Real w) const override { return xyz(u, v); }
     virtual point_type xyz(Real u, Real v) const = 0;
     point_type xyz(point2d_type const& p) const { return xyz(p[0], p[1]); };
 };
-
 
 // struct gPlane : public ParametricSurface2D {
 //    SP_GEO_ENTITY_ABS_HEAD(ParametricSurface2D, gPlane)

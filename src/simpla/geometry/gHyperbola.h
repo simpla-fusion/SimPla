@@ -5,7 +5,7 @@
 #ifndef SIMPLA_GHYPERBOLA_H
 #define SIMPLA_GHYPERBOLA_H
 
-#include "gConic.h"
+#include "gCone.h"
 namespace simpla {
 namespace geometry {
 
