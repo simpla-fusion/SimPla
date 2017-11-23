@@ -228,6 +228,8 @@ std::shared_ptr<TDest> make_oce_primary_shape(std::shared_ptr<const GeoEntity> c
         res = std::make_shared<TDest>(BRepPrimAPI_MakeCylinder(axis, p_max[0] - p_min[0], p_max[1] - p_min[1]));
     } else if (auto torus = std::dynamic_pointer_cast<const gTorus>(geo)) {
         res = std::make_shared<TDest>(BRepPrimAPI_MakeTorus(axis, torus->GetMajorRadius(), torus->GetMinorRadius()));
+    } else if (auto sweeping = std::dynamic_pointer_cast<const gSweeping>(geo)) {
+        VERBOSE << FILE_LINE_STAMP << *sweeping;
     } else {
         UNIMPLEMENTED;
     }
