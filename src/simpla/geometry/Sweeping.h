@@ -19,7 +19,8 @@ std::shared_ptr<GeoObject> MakeRevolution(std::shared_ptr<const GeoEntity> const
                                           vector_type const& Nx = vector_type{1, 0, 0},
                                           vector_type const& Ny = vector_type{0, 1, 0}, Real angle = TWOPI,
                                           Axis const& = Axis{});
-
+std::shared_ptr<GeoObject> MakeRevolution(std::shared_ptr<const GeoEntity> const& geo, Real angle);
+std::shared_ptr<GeoObject> MakeRevolution(std::shared_ptr<const GeoEntity> const& geo, Real angle0, Real angle1);
 std::shared_ptr<GeoObject> MakePrism(std::shared_ptr<const GeoEntity> const& geo, vector_type const& direction,
                                      Real u = 1, Axis const& = Axis{});
 

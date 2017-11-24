@@ -22,8 +22,8 @@ int main(int argc, char **argv) {
     auto tokamak = sp::Tokamak::New("/home/salmon/workspace/SimPla/scripts/gfile/g038300.03900");
     sg::Initialize("OCE");
     GEO_ENGINE->OpenFile("tokamak.stl");
-    auto limiter = sg::MakeRevolution(tokamak->Limiter(), 0, vector_type{1, 0, 0}, vector_type{0, 0, 1}, sp::PI);
-    auto boundary = sg::MakeRevolution(tokamak->Boundary(), 0, vector_type{1, 0, 0}, vector_type{0, 0, 1}, sp::PI);
+    auto limiter = sg::MakeRevolution(tokamak->Limiter(), -sp::PI / 4, sp::PI / 4);
+    auto boundary = sg::MakeRevolution(tokamak->Boundary(), -sp::PI / 4, sp::PI / 4);
     GEO_ENGINE->Save(limiter, "Limiter");
     GEO_ENGINE->Save(boundary, "Boundary");
 

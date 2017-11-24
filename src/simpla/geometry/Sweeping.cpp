@@ -22,6 +22,13 @@ std::shared_ptr<GeoObject> MakeRevolution(std::shared_ptr<const GeoEntity> const
 
     return GeoObjectHandle::New(gSweeping::New(geo, gCircle::New(radius), r_axis), g_axis, range);
 };
+std::shared_ptr<GeoObject> MakeRevolution(std::shared_ptr<const GeoEntity> const& geo, Real angle) {
+    return MakeRevolution(geo, 0, angle);
+}
+std::shared_ptr<GeoObject> MakeRevolution(std::shared_ptr<const GeoEntity> const& geo, Real angle0, Real angle1) {
+    return MakeRevolution(geo, 0, vector_type{std::cos(angle0), std::sin(angle0), 0}, vector_type{0, 0, 1},
+                          angle1 - angle0);
+}
 
 std::shared_ptr<GeoObject> MakeRevolution(std::shared_ptr<const GeoEntity> const& geo, Axis const& r_axis, Real radius,
                                           Axis const& g_axis) {

@@ -199,14 +199,14 @@ std::shared_ptr<TopoDS_Edge> make_oce_shape(std::shared_ptr<const gBoundedCurve>
 std::shared_ptr<TopoDS_Shape> make_oce_shape(std::shared_ptr<const gCurve> const &g, Axis const &axis,
                                              std::tuple<Real, Real> const &range) {
     std::shared_ptr<TopoDS_Shape> res = nullptr;
-    if (auto bc = std::dynamic_pointer_cast<const gBoundedCurve>(g)) {
-        res = make_oce_shape(bc, axis, range);
-    } else if (auto bc2 = std::dynamic_pointer_cast<const gBoundedCurve2D>(g)) {
-        res = make_oce_shape(bc2, axis, range);
-    } else if (auto polygon = std::dynamic_pointer_cast<const gPolygon2D>(g)) {
+    if (auto polygon = std::dynamic_pointer_cast<const gPolygon>(g)) {
         res = make_oce_shape(polygon, axis, range);
     } else if (auto polygon2d = std::dynamic_pointer_cast<const gPolygon2D>(g)) {
         res = make_oce_shape(polygon2d, axis, range);
+    } else if (auto bc = std::dynamic_pointer_cast<const gBoundedCurve>(g)) {
+        res = make_oce_shape(bc, axis, range);
+    } else if (auto bc2 = std::dynamic_pointer_cast<const gBoundedCurve2D>(g)) {
+        res = make_oce_shape(bc2, axis, range);
     } else {
         res = std::make_shared<TopoDS_Edge>(BRepBuilderAPI_MakeEdge(make_geo_curve(g, axis)));
     }
