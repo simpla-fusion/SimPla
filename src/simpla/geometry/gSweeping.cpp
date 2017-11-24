@@ -11,6 +11,8 @@ namespace geometry {
 gSweeping::gSweeping(std::shared_ptr<const GeoEntity> const& basis, std::shared_ptr<const gCurve> const& curve,
                      Axis const& r_axis)
     : m_basis_(basis), m_path_(curve), m_r_axis_(r_axis) {}
+gSweeping::gSweeping(gSweeping const& other)
+    : m_basis_(other.m_basis_), m_path_(other.m_path_), m_r_axis_(other.m_r_axis_) {}
 void gSweeping::Deserialize(std::shared_ptr<const simpla::data::DataEntry> const& cfg) {
     base_type::Deserialize(cfg);
     m_r_axis_.Deserialize(cfg->Get("RelativeAxis"));

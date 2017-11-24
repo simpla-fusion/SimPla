@@ -70,8 +70,8 @@ std::shared_ptr<GeoObject> GeoObject::GetIntersection(std::shared_ptr<const GeoO
     return GEO_ENGINE->GetIntersection(Self(), g, tolerance);
 }
 
-GeoObjectHandle::GeoObjectHandle(std::shared_ptr<const GeoEntity> const &geo, Axis const &axis)
-    : GeoObject(axis), m_geo_entity_(geo) {}
+GeoObjectHandle::GeoObjectHandle(std::shared_ptr<const GeoEntity> const &geo, Axis const &axis, box_type const &range)
+    : GeoObject(axis), m_geo_entity_(geo), m_ParameterRange_(range) {}
 void GeoObjectHandle::Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) {
     base_type::Deserialize(cfg);
     m_geo_entity_ = GeoEntity::Create(cfg->Get("Geometry"));

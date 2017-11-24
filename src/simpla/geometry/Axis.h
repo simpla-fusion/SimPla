@@ -80,12 +80,22 @@ struct Axis : public data::Serializable, public data::Configurable {
     void Rotate(const Axis &a1, Real angle);
     void Scale(Real s, int dir = -1);
     void Translate(const vector_type &v);
+    void Translate(Axis const &v);
     void Move(const point_type &p);
     Axis Moved(const point_type &p) const;
 
-    virtual point_type xyz(point_type const &uvw_) const { return o + uvw_[0] * x + uvw_[1] * y + uvw_[2] * z; }
+    template <typename UTrans>
+    Axis Translated(const UTrans &transf) const {
+        Axis res(*this);
+        res.Translate(transf);
+        return std::move(res);
+    }
+
+    virtual point_type xyz(point_type const &uvw_) const {
+        return o + uvw_[0] * m_axis_[0] + uvw_[1] * m_axis_[1] + uvw_[2] * m_axis_[2];
+    }
     virtual point_type uvw(point_type const &xyz_) const {
-        return point_type{dot(xyz_ - o, x), dot(xyz_ - o, y), dot(xyz_ - o, z)};
+        return point_type{dot(xyz_ - o, m_axis_[0]), dot(xyz_ - o, m_axis_[1]), dot(xyz_ - o, m_axis_[2])};
     }
     point_type xyz(Real u, Real v = 0, Real w = 0) const { return xyz(point_type{u, v, w}); }
     point_type uvw(Real x0, Real x1 = 0, Real x2 = 0) const { return uvw(point_type{x0, x1, x2}); }
@@ -98,6 +108,7 @@ struct Axis : public data::Serializable, public data::Configurable {
     vector_type const &y = m_axis_[1];
     vector_type const &z = m_axis_[2];
 };
+Axis Transform(Axis const &src, Axis const &rel);
 }  // namespace geometry
 }  // namespace simpla
 #endif  // SIMPLA_AXIS_H

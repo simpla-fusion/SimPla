@@ -92,7 +92,6 @@ struct GeoEntity : public data::Serializable, public data::Configurable, public 
     SP_SERIALIZABLE_HEAD(_BASE_NAME_, _CLASS_NAME_)                                                  \
    protected:                                                                                        \
     _CLASS_NAME_() = default;                                                                        \
-    _CLASS_NAME_(_CLASS_NAME_ const &) = default;                                                    \
                                                                                                      \
    public:                                                                                           \
     ~_CLASS_NAME_() override = default;                                                              \

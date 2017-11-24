@@ -19,6 +19,7 @@ struct gSweeping : public GeoEntity {
 
     explicit gSweeping(std::shared_ptr<const GeoEntity> const& basis_entity, std::shared_ptr<const gCurve> const& curve,
                        Axis const& r_axis = Axis{});
+    gSweeping(gSweeping const&);
 
     void Deserialize(std::shared_ptr<const simpla::data::DataEntry> const& cfg) override;
     std::shared_ptr<simpla::data::DataEntry> Serialize() const override;

@@ -173,7 +173,8 @@ struct GeoObjectHandle : public GeoObject {
     std::shared_ptr<simpla::data::DataEntry> Serialize() const override;
 
    protected:
-    GeoObjectHandle(std::shared_ptr<const GeoEntity> const &, Axis const &axis = Axis{});
+    GeoObjectHandle(std::shared_ptr<const GeoEntity> const &, Axis const &axis = Axis{},
+                    box_type const &range = box_type{{0, 0, 0}, {1, 1, 1}});
 
    public:
     std::shared_ptr<const GeoEntity> GetBasisGeometry() const;
