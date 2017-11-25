@@ -82,8 +82,17 @@ std::shared_ptr<GeoObject> csCylindrical::GetCoordinateBox(box_type const &b) co
     p1[2] = std::get<1>(b)[PhiAxis];
     p0[1] = std::get<0>(b)[ZAxis];
     p1[1] = std::get<1>(b)[ZAxis];
-    return GeoObjectHandle::New(m_axis_,
-                                gSweeping::New(gPlane::New(), gCircle::New(), Axis{{1, 0, 0}, {0, 0, 1}, {0, 1, 0}}),
+    vector_type r_axis{0, 0, 0};
+    r_axis[RAxis] = 1;
+    vector_type z_axis{0, 0, 0};
+    z_axis[ZAxis] = 1;
+    vector_type phi_axis{0, 0, 0};
+    phi_axis[PhiAxis] = 1;
+    Axis t_axis;
+    t_axis.SetAxis(0, r_axis);
+    t_axis.SetAxis(1, z_axis);
+    t_axis.SetAxis(2, phi_axis);
+    return GeoObjectHandle::New(m_axis_, gSweeping::New(gPlane::New(), gCircle::New(), t_axis),
                                 std::make_tuple(p0, p1));
 };
 

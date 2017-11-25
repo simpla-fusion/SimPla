@@ -23,7 +23,7 @@
 namespace sg = simpla::geometry;
 namespace sp = simpla;
 namespace simpla {
-typedef engine::Domain<geometry::csCylindrical, scheme::FVM, mesh::CoRectMesh /*, mesh::EBMesh*/> domain_type;
+typedef engine::Domain<geometry::csCylindrical, scheme::FVM, mesh::RectMesh /*, mesh::EBMesh*/> domain_type;
 
 }  // namespace simpla {
 
@@ -42,9 +42,9 @@ int main(int argc, char** argv) {
     scenario->GetAtlas()->SetPeriodicDimensions({1, 1, 1});
     scenario->GetAtlas()->SetBoundingBox(box_type{{1.2, -PI / 4, -1.4}, {1.8, PI / 4, 1.4}});
     auto tokamak = sp::Tokamak::New("/home/salmon/workspace/SimPla/scripts/gfile/g038300.03900");
-    //    auto g_boundary = sg::MakeRevolution(tokamak->Boundary(), sg::Axis{}, TWOPI);
-    auto d_limiter = scenario->NewDomain<domain::Maxwell<domain_type>>(
-        "Limiter", sg::MakeRevolution(tokamak->Limiter(), -PI / 4, PI / 4));
+    auto g_boundary = sg::MakeRevolution(tokamak->Boundary(), -PI / 4, PI / 4);
+    auto g_limiter = sg::MakeRevolution(tokamak->Limiter(), -PI / 4, PI / 4);
+    auto d_limiter = scenario->NewDomain<domain::Maxwell<domain_type>>("Limiter", g_limiter);
     d_limiter->AddPostInitialCondition([=](auto* self, Real time_now) {
         self->B = [&](point_type const& x) {
             return point_type{std::cos(2 * PI * x[1] / 60) * std::cos(2 * PI * x[2] / 50),
@@ -60,6 +60,8 @@ int main(int argc, char** argv) {
     scenario->GetAtlas()->AddPatch(scenario->GetAtlas()->GetBoundingBox());
     scenario->ConfigureAttribute<size_type>("E", "CheckPoint", 1);
     scenario->ConfigureAttribute<size_type>("B", "CheckPoint", 1);
+    scenario->ConfigureAttribute<size_type>("_COORDINATES_", "CheckPoint", 1);
+
     VERBOSE << "Scenario: " << *scenario->Serialize();
     scenario->Run();
     scenario->Dump();

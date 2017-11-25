@@ -27,34 +27,25 @@ struct RectMesh : public StructuredMesh {
     void InitialCondition(Real time_now);
     void BoundaryCondition(Real time_now, Real time_dt);
 
-    engine::AttributeT<Real, NODE, 3> m_coordinates_{m_host_, "Name"_ = "_COORDINATES_", "COORDINATES"_, "LOCAL"_,
-                                                     "CheckPoint"_};
+    engine::AttributeT<Real, NODE, 3> m_coordinates_{m_host_, "Name"_ = "_COORDINATES_", "COORDINATES"_, "LOCAL"_};
     //     engine:: AttributeT< Real, NODE > m_vertices_{m_domain_, "Name"_ = "m_vertices_","LOCAL"_};
 
-    engine::AttributeT<Real, NODE> m_node_volume_{m_host_, "Name"_ = "m_node_volume_", "LOCAL"_, "CheckPoint"_};
-    engine::AttributeT<Real, NODE> m_node_inv_volume_{m_host_, "Name"_ = "m_node_inv_volume_", "LOCAL"_, "CheckPoint"_};
-    engine::AttributeT<Real, NODE> m_node_dual_volume_{m_host_, "Name"_ = "m_node_dual_volume_", "LOCAL"_,
-                                                       "CheckPoint"_};
-    engine::AttributeT<Real, NODE> m_node_inv_dual_volume_{m_host_, "Name"_ = "m_node_inv_dual_volume_", "LOCAL"_,
-                                                           "CheckPoint"_};
-    engine::AttributeT<Real, CELL> m_cell_volume_{m_host_, "Name"_ = "m_cell_volume_", "LOCAL"_, "CheckPoint"_};
-    engine::AttributeT<Real, CELL> m_cell_inv_volume_{m_host_, "Name"_ = "m_cell_inv_volume_", "LOCAL"_, "CheckPoint"_};
-    engine::AttributeT<Real, CELL> m_cell_dual_volume_{m_host_, "Name"_ = "m_cell_dual_volume_", "LOCAL"_,
-                                                       "CheckPoint"_};
-    engine::AttributeT<Real, CELL> m_cell_inv_dual_volume_{m_host_, "Name"_ = "m_cell_inv_dual_volume_", "LOCAL"_,
-                                                           "CheckPoint"_};
-    engine::AttributeT<Real, EDGE> m_edge_volume_{m_host_, "Name"_ = "m_edge_volume_", "LOCAL"_, "CheckPoint"_};
-    engine::AttributeT<Real, EDGE> m_edge_inv_volume_{m_host_, "Name"_ = "m_edge_inv_volume_", "LOCAL"_, "CheckPoint"_};
-    engine::AttributeT<Real, EDGE> m_edge_dual_volume_{m_host_, "Name"_ = "m_edge_dual_volume_", "LOCAL"_,
-                                                       "CheckPoint"_};
-    engine::AttributeT<Real, EDGE> m_edge_inv_dual_volume_{m_host_, "Name"_ = "m_edge_inv_dual_volume_", "LOCAL"_,
-                                                           "CheckPoint"_};
-    engine::AttributeT<Real, FACE> m_face_volume_{m_host_, "Name"_ = "m_face_volume_", "LOCAL"_, "CheckPoint"_};
-    engine::AttributeT<Real, FACE> m_face_inv_volume_{m_host_, "Name"_ = "m_face_inv_volume_", "LOCAL"_, "CheckPoint"_};
-    engine::AttributeT<Real, FACE> m_face_dual_volume_{m_host_, "Name"_ = "m_face_dual_volume_", "LOCAL"_,
-                                                       "CheckPoint"_};
-    engine::AttributeT<Real, FACE> m_face_inv_dual_volume_{m_host_, "Name"_ = "m_face_inv_dual_volume_", "LOCAL"_,
-                                                           "CheckPoint"_};
+    engine::AttributeT<Real, NODE> m_node_volume_{m_host_, "Name"_ = "m_node_volume_", "LOCAL"_};
+    engine::AttributeT<Real, NODE> m_node_inv_volume_{m_host_, "Name"_ = "m_node_inv_volume_", "LOCAL"_};
+    engine::AttributeT<Real, NODE> m_node_dual_volume_{m_host_, "Name"_ = "m_node_dual_volume_", "LOCAL"_};
+    engine::AttributeT<Real, NODE> m_node_inv_dual_volume_{m_host_, "Name"_ = "m_node_inv_dual_volume_", "LOCAL"_};
+    engine::AttributeT<Real, CELL> m_cell_volume_{m_host_, "Name"_ = "m_cell_volume_", "LOCAL"_};
+    engine::AttributeT<Real, CELL> m_cell_inv_volume_{m_host_, "Name"_ = "m_cell_inv_volume_", "LOCAL"_};
+    engine::AttributeT<Real, CELL> m_cell_dual_volume_{m_host_, "Name"_ = "m_cell_dual_volume_", "LOCAL"_};
+    engine::AttributeT<Real, CELL> m_cell_inv_dual_volume_{m_host_, "Name"_ = "m_cell_inv_dual_volume_", "LOCAL"_};
+    engine::AttributeT<Real, EDGE> m_edge_volume_{m_host_, "Name"_ = "m_edge_volume_", "LOCAL"_};
+    engine::AttributeT<Real, EDGE> m_edge_inv_volume_{m_host_, "Name"_ = "m_edge_inv_volume_", "LOCAL"_};
+    engine::AttributeT<Real, EDGE> m_edge_dual_volume_{m_host_, "Name"_ = "m_edge_dual_volume_", "LOCAL"_};
+    engine::AttributeT<Real, EDGE> m_edge_inv_dual_volume_{m_host_, "Name"_ = "m_edge_inv_dual_volume_", "LOCAL"_};
+    engine::AttributeT<Real, FACE> m_face_volume_{m_host_, "Name"_ = "m_face_volume_", "LOCAL"_};
+    engine::AttributeT<Real, FACE> m_face_inv_volume_{m_host_, "Name"_ = "m_face_inv_volume_", "LOCAL"_};
+    engine::AttributeT<Real, FACE> m_face_dual_volume_{m_host_, "Name"_ = "m_face_dual_volume_", "LOCAL"_};
+    engine::AttributeT<Real, FACE> m_face_inv_dual_volume_{m_host_, "Name"_ = "m_face_inv_dual_volume_", "LOCAL"_};
 };
 template <typename THost>
 RectMesh<THost>::RectMesh(THost* h) : m_host_(h) {
@@ -123,51 +114,51 @@ void RectMesh<THost>::InitialCondition(Real time_now) {
      */
 
     m_coordinates_ = [&](index_type x, index_type y, index_type z) { return chart->global_coordinates(0b0, x, y, z); };
-
-    m_node_volume_ = 1.0;
-    m_node_inv_volume_ = 1.0;
-    m_node_dual_volume_ = [&](index_type x, index_type y, index_type z) -> Real {
-        return chart->volume(chart->local_coordinates(0b111, x - 1, y - 1, z - 1),
-                             chart->local_coordinates(0b111, x, y, z));
-    };
-    m_node_inv_dual_volume_ = 1.0 / m_node_dual_volume_;
-
-    m_cell_volume_ = [&](index_type x, index_type y, index_type z) -> Real {
-        return chart->volume(chart->local_coordinates(0b0, x, y, z),
-                             chart->local_coordinates(0b0, x + 1, y + 1, z + 1));
-    };
-    m_cell_inv_volume_ = 1.0 / m_cell_volume_;
-    m_cell_dual_volume_ = 1.0;
-    m_cell_inv_dual_volume_ = 1.0;
-
-    m_edge_volume_ = [&](int w, index_type x, index_type y, index_type z) -> Real {
-        return chart->length(
-            chart->local_coordinates(0b0, x, y, z),
-            chart->local_coordinates(0b0, x + (w == 0 ? 1 : 0), y + (w == 1 ? 1 : 0), z + (w == 2 ? 1 : 0)), w);
-    };
-    m_edge_inv_volume_ = 1.0 / m_edge_volume_;
-
-    m_edge_dual_volume_ = [&](int w, index_type x, index_type y, index_type z) -> Real {
-        return chart->area(
-            chart->local_coordinates(0b111, x - (w != 0 ? 1 : 0), y - (w != 1 ? 1 : 0), z - (w != 2 ? 1 : 0)),
-            chart->local_coordinates(0b111, x, y, z), w);
-    };
-    m_edge_inv_dual_volume_ = 1.0 / m_edge_dual_volume_;
-
-    m_face_volume_ = [&](int w, index_type x, index_type y, index_type z) -> Real {
-        return chart->area(
-            chart->local_coordinates(0b0, x, y, z),
-            chart->local_coordinates(0b0, x + (w != 0 ? 1 : 0), y + (w != 1 ? 1 : 0), z + (w != 2 ? 1 : 0)), w);
-
-    };
-    m_face_inv_volume_ = 1.0 / m_face_volume_;
-
-    m_face_dual_volume_ = [&](int w, index_type x, index_type y, index_type z) -> Real {
-        return chart->length(
-            chart->local_coordinates(0b111, x - (w == 0 ? 1 : 0), y - (w == 1 ? 1 : 0), z - (w == 2 ? 1 : 0)),
-            chart->local_coordinates(0b111, x, y, z), w);
-    };
-    m_face_inv_dual_volume_ = 1.0 / m_face_dual_volume_;
+//
+//    m_node_volume_ = 1.0;
+//    m_node_inv_volume_ = 1.0;
+//    m_node_dual_volume_ = [&](index_type x, index_type y, index_type z) -> Real {
+//        return chart->volume(chart->local_coordinates(0b111, x - 1, y - 1, z - 1),
+//                             chart->local_coordinates(0b111, x, y, z));
+//    };
+//    m_node_inv_dual_volume_ = 1.0 / m_node_dual_volume_;
+//
+//    m_cell_volume_ = [&](index_type x, index_type y, index_type z) -> Real {
+//        return chart->volume(chart->local_coordinates(0b0, x, y, z),
+//                             chart->local_coordinates(0b0, x + 1, y + 1, z + 1));
+//    };
+//    m_cell_inv_volume_ = 1.0 / m_cell_volume_;
+//    m_cell_dual_volume_ = 1.0;
+//    m_cell_inv_dual_volume_ = 1.0;
+//
+//    m_edge_volume_ = [&](int w, index_type x, index_type y, index_type z) -> Real {
+//        return chart->length(
+//            chart->local_coordinates(0b0, x, y, z),
+//            chart->local_coordinates(0b0, x + (w == 0 ? 1 : 0), y + (w == 1 ? 1 : 0), z + (w == 2 ? 1 : 0)), w);
+//    };
+//    m_edge_inv_volume_ = 1.0 / m_edge_volume_;
+//
+//    m_edge_dual_volume_ = [&](int w, index_type x, index_type y, index_type z) -> Real {
+//        return chart->area(
+//            chart->local_coordinates(0b111, x - (w != 0 ? 1 : 0), y - (w != 1 ? 1 : 0), z - (w != 2 ? 1 : 0)),
+//            chart->local_coordinates(0b111, x, y, z), w);
+//    };
+//    m_edge_inv_dual_volume_ = 1.0 / m_edge_dual_volume_;
+//
+//    m_face_volume_ = [&](int w, index_type x, index_type y, index_type z) -> Real {
+//        return chart->area(
+//            chart->local_coordinates(0b0, x, y, z),
+//            chart->local_coordinates(0b0, x + (w != 0 ? 1 : 0), y + (w != 1 ? 1 : 0), z + (w != 2 ? 1 : 0)), w);
+//
+//    };
+//    m_face_inv_volume_ = 1.0 / m_face_volume_;
+//
+//    m_face_dual_volume_ = [&](int w, index_type x, index_type y, index_type z) -> Real {
+//        return chart->length(
+//            chart->local_coordinates(0b111, x - (w == 0 ? 1 : 0), y - (w == 1 ? 1 : 0), z - (w == 2 ? 1 : 0)),
+//            chart->local_coordinates(0b111, x, y, z), w);
+//    };
+//    m_face_inv_dual_volume_ = 1.0 / m_face_dual_volume_;
 };
 
 template <typename THost>
