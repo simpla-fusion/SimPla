@@ -247,7 +247,7 @@ std::shared_ptr<TopoDS_Solid> make_oce_shape(std::shared_ptr<const gBody> const 
                                              box_type const &range) {
     std::shared_ptr<TopoDS_Solid> res = nullptr;
     auto const &axis = make_axis(g_axis);
-    point2d_type p_min, p_max;
+    point_type p_min, p_max;
     std::tie(p_min, p_max) = range;
     if (auto box = std::dynamic_pointer_cast<const gBox>(geo)) {
         res = std::make_shared<TopoDS_Solid>(
@@ -260,7 +260,7 @@ std::shared_ptr<TopoDS_Solid> make_oce_shape(std::shared_ptr<const gBody> const 
         res = std::make_shared<TopoDS_Solid>(BRepPrimAPI_MakeSphere(axis, sphere->GetRadius()).Solid());
     } else if (auto cylinder = std::dynamic_pointer_cast<const gCylinder>(geo)) {
         res = std::make_shared<TopoDS_Solid>(
-            BRepPrimAPI_MakeCylinder(axis, p_max[0] - p_min[0], p_max[1] - p_min[1]).Solid());
+            BRepPrimAPI_MakeCylinder(axis, p_max[0], p_max[2] - p_min[2], p_max[1] - p_min[1]).Solid());
     } else if (auto torus = std::dynamic_pointer_cast<const gTorus>(geo)) {
         res = std::make_shared<TopoDS_Solid>(
             BRepPrimAPI_MakeTorus(axis, torus->GetMajorRadius(), torus->GetMinorRadius()).Solid());

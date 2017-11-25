@@ -12,12 +12,12 @@ namespace geometry {
 struct Sphere : public Solid {
     SP_GEO_OBJECT_HEAD(Solid, Sphere)
    protected:
-    explicit Sphere(Axis const &axis, Real r0, Real r1, Real a0, Real a1, Real h0, Real h1);
+    explicit Sphere(Axis const &axis, box_type const &range);
 };
 struct SphereSurface : public Face {
     SP_GEO_OBJECT_HEAD(Face, SphereSurface)
    protected:
-    explicit SphereSurface(Axis const &axis, Real radius, Real a0, Real a1, Real h0, Real h1);
+    explicit SphereSurface(Axis const &axis, Real radius, std::tuple<point2d_type, point2d_type> const &b);
 };
 
 }  // namespace geometry {

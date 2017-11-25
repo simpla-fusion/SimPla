@@ -13,14 +13,14 @@ struct Circle : public Edge {
     SP_GEO_OBJECT_HEAD(Edge, Circle)
 
    protected:
-    explicit Circle(Axis const &axis, Real radius, Real a0, Real a1);
+    explicit Circle(Axis const &axis, Real radius, std::tuple<Real, Real> const &r);
     explicit Circle(Axis const &axis, Real radius, Real a1 = TWOPI);
 };
 struct Disk : public Face {
     SP_GEO_OBJECT_HEAD(Face, Disk)
 
    protected:
-    explicit Disk(Axis const &axis, Real r0, Real r1, Real a0, Real a1);
+    explicit Disk(Axis const &axis, std::tuple<point2d_type, point2d_type> const &b);
     explicit Disk(Axis const &axis, Real radius, Real a1 = TWOPI);
 };
 }  // namespace geometry{

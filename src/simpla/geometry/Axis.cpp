@@ -23,7 +23,6 @@ void Axis::Translate(Axis const &other) {
     m_axis_[0] = other.m_axis_[0][0] * t_axis[0] + other.m_axis_[0][1] * t_axis[1] + other.m_axis_[0][2] * t_axis[2];
     m_axis_[1] = other.m_axis_[1][0] * t_axis[1] + other.m_axis_[1][1] * t_axis[1] + other.m_axis_[1][2] * t_axis[2];
     m_axis_[2] = other.m_axis_[2][0] * t_axis[2] + other.m_axis_[2][1] * t_axis[1] + other.m_axis_[2][2] * t_axis[2];
-    CHECK(m_axis_);
 }
 
 void Axis::Move(const point_type &p) { m_Origin_ = p; }

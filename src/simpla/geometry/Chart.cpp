@@ -56,12 +56,10 @@ std::shared_ptr<Face> Chart::GetCoordinateFace(point_type const &o, int normal, 
     return std::dynamic_pointer_cast<Face>(
         MakeSweep(GetCoordinateEdge(o, (normal + 1) % 3, u), GetCoordinateEdge(o, (normal + 2) % 3, v)));
 }
-std::shared_ptr<Solid> Chart::GetCoordinateBox(point_type const &o, Real u, Real v, Real w) const {
-    return MakeSweep(GetCoordinateFace(o, 2, u, v), GetCoordinateEdge(o, 2, w));
-}
-std::shared_ptr<Solid> Chart::GetCoordinateBox(box_type const &b) const {
+
+std::shared_ptr<GeoObject> Chart::GetCoordinateBox(box_type const &b) const {
     vector_type l = std::get<1>(b) - std::get<0>(b);
-    return GetCoordinateBox(std::get<0>(b), l[0], l[1], l[2]);
+    return MakeSweep(GetCoordinateFace(std::get<0>(b), 2, l[0], l[1]), GetCoordinateEdge(std::get<0>(b), 2, l[2]));
 }
 std::shared_ptr<Edge> Chart::GetCoordinateEdge(index_tuple const &x0, int normal, index_type u) const {
     return GetCoordinateEdge(uvw(x0), normal, u * m_grid_width_[normal]);
@@ -69,10 +67,11 @@ std::shared_ptr<Edge> Chart::GetCoordinateEdge(index_tuple const &x0, int normal
 std::shared_ptr<Face> Chart::GetCoordinateFace(index_tuple const &x0, int normal, index_type u, index_type v) const {
     return GetCoordinateFace(uvw(x0), normal, u * m_grid_width_[(normal + 1) % 3], v * m_grid_width_[(normal + 2) % 3]);
 };
-std::shared_ptr<Solid> Chart::GetCoordinateBox(index_tuple const &b, index_type u, index_type v, index_type w) const {
-    return GetCoordinateBox(uvw(b), u * m_grid_width_[0], v * m_grid_width_[1], w * m_grid_width_[2]);
-};
-std::shared_ptr<Solid> Chart::GetCoordinateBox(index_box_type const &b) const {
+// std::shared_ptr<GeoObject> Chart::GetCoordinateBox(index_tuple const &b, index_type u, index_type v,
+//                                                   index_type w) const {
+//    return GetCoordinateBox(uvw(b), u * m_grid_width_[0], v * m_grid_width_[1], w * m_grid_width_[2]);
+//};
+std::shared_ptr<GeoObject> Chart::GetCoordinateBox(index_box_type const &b) const {
     return GetCoordinateBox(GetBoxUVW(b));
 };
 

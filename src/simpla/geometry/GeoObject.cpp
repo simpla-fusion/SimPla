@@ -70,19 +70,30 @@ std::shared_ptr<GeoObject> GeoObject::GetIntersection(std::shared_ptr<const GeoO
     return GEO_ENGINE->GetIntersection(Self(), g, tolerance);
 }
 
-GeoObjectHandle::GeoObjectHandle(std::shared_ptr<const GeoEntity> const &geo, Axis const &axis, box_type const &range)
-    : GeoObject(axis), m_geo_entity_(geo), m_ParameterRange_(range) {}
+GeoObjectHandle::GeoObjectHandle(const Axis &axis, std::shared_ptr<const GeoEntity> const &geo, const box_type &range)
+    : GeoObject(axis), m_geo_entity_(geo), m_range_(range) {}
 void GeoObjectHandle::Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) {
     base_type::Deserialize(cfg);
     m_geo_entity_ = GeoEntity::Create(cfg->Get("Geometry"));
+    m_range_ = cfg->GetValue("ParameterRange", m_range_);
 }
 std::shared_ptr<simpla::data::DataEntry> GeoObjectHandle::Serialize() const {
     auto res = base_type::Serialize();
     res->Set("Geometry", m_geo_entity_->Serialize());
+    res->SetValue("ParameterRange", m_range_);
     return res;
 };
 std::shared_ptr<const GeoEntity> GeoObjectHandle::GetBasisGeometry() const { return m_geo_entity_; }
 void GeoObjectHandle::SetBasisGeometry(std::shared_ptr<const GeoEntity> const &g) { m_geo_entity_ = g; }
+
+void GeoObjectHandle::SetParameterRange(Real r0, Real r1) { m_range_ = box_type{{r0, 0, 0}, {r1, 1, 1}}; }
+void GeoObjectHandle::SetParameterRange(point2d_type const &r0, point2d_type const &r1) {
+    m_range_ = box_type{{r0[0], r0[0], 0}, {r1[0], r1[1], 1}};
+}
+void GeoObjectHandle::SetParameterRange(point_type const &r0, point_type const &r1) {
+    m_range_ = std::make_tuple(r0, r1);
+}
+void GeoObjectHandle::SetParameterRange(box_type const &b) { m_range_ = b; }
 // std::shared_ptr<GeoObject> GeoObject::GetBoundary() const { return nullptr; }
 
 // Real GeoObject::Measure() const {

@@ -41,14 +41,12 @@ struct Chart : public data::Serializable, public data::Configurable, public data
     virtual Axis GetLocalAxis(point_type const &) const;
     virtual std::shared_ptr<Edge> GetCoordinateEdge(point_type const &o, int normal, Real u) const = 0;
     virtual std::shared_ptr<Face> GetCoordinateFace(point_type const &o, int normal, Real u, Real v) const;
-    virtual std::shared_ptr<Solid> GetCoordinateBox(point_type const &o, Real u, Real v, Real w) const;
-    std::shared_ptr<Solid> GetCoordinateBox(box_type const &o) const;
+    virtual std::shared_ptr<GeoObject> GetCoordinateBox(box_type const &range) const;
+
     std::shared_ptr<Edge> GetCoordinateEdge(index_tuple const &x0, int normal, index_type u = 1) const;
     std::shared_ptr<Face> GetCoordinateFace(index_tuple const &x0, int normal, index_type u = 1,
                                             index_type v = 1) const;
-    std::shared_ptr<Solid> GetCoordinateBox(index_tuple const &b, index_type u = 1, index_type v = 1,
-                                            index_type w = 1) const;
-    std::shared_ptr<Solid> GetCoordinateBox(index_box_type const &b) const;
+    std::shared_ptr<GeoObject> GetCoordinateBox(index_box_type const &b) const;
 
     SP_PROPERTY(int, Level) = 0;
     SP_PROPERTY(point_type, Origin) = {0, 0, 0};

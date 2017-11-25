@@ -13,13 +13,11 @@ namespace geometry {
 
 struct Box : public Solid {
     SP_GEO_OBJECT_HEAD(Solid, Box)
-
-    Box(std::initializer_list<std::initializer_list<Real>> const &v);
-    explicit Box(point_type const &p0, point_type const &p1);
-    explicit Box(point_type const &p0, Real u, Real v, Real w);
     explicit Box(box_type const &v);
+    explicit Box(point_type const &p0, point_type const &p1);
     explicit Box(Axis const &axis, vector_type const &extents);
 
+    Box(std::initializer_list<std::initializer_list<Real>> const &v);
     static std::shared_ptr<Box> New(std::initializer_list<std::initializer_list<Real>> const &box) {
         return std::shared_ptr<Box>(new Box(box));
     }

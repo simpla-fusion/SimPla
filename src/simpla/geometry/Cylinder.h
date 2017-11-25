@@ -12,14 +12,11 @@ namespace geometry {
 
 struct Cylinder : public Solid {
     SP_GEO_OBJECT_HEAD(Solid, Cylinder)
-
-    explicit Cylinder(Axis const &axis, Real r0, Real r1, Real a0, Real a1, Real h0, Real h1);
     explicit Cylinder(Axis const &axis, box_type const &);
 };
 struct CylinderSurface : public Face {
     SP_GEO_OBJECT_HEAD(Face, CylinderSurface)
-
-    explicit CylinderSurface(Axis const &axis, Real radius, Real a0, Real a1, Real h0, Real h1);
+    explicit CylinderSurface(Axis const &axis, Real radius, std::tuple<point2d_type, point2d_type> const &b);
 };
 
 }  // namespace geometry {

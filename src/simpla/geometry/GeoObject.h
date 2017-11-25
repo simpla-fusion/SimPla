@@ -33,7 +33,6 @@ class GeoObject : public data::Serializable,
                   public data::Creatable<GeoObject>,
                   public std::enable_shared_from_this<GeoObject> {
     SP_SERIALIZABLE_HEAD(data::Serializable, GeoObject)
-
     void Deserialize(std::shared_ptr<const simpla::data::DataEntry> const &cfg) override;
     std::shared_ptr<simpla::data::DataEntry> Serialize() const override;
 
@@ -96,8 +95,8 @@ class GeoObject : public data::Serializable,
     SP_SERIALIZABLE_HEAD(_BASE_NAME_, _CLASS_NAME_)                                                               \
    protected:                                                                                                     \
     _CLASS_NAME_() = default;                                                                                     \
+    _CLASS_NAME_(_CLASS_NAME_ const &) = default;                                                                 \
     explicit _CLASS_NAME_(Axis const &axis) : base_type(axis){};                                                  \
-    _CLASS_NAME_(_CLASS_NAME_ const &other) = default;                                                            \
                                                                                                                   \
    public:                                                                                                        \
     ~_CLASS_NAME_() override = default;                                                                           \
@@ -173,16 +172,22 @@ struct GeoObjectHandle : public GeoObject {
     std::shared_ptr<simpla::data::DataEntry> Serialize() const override;
 
    protected:
-    GeoObjectHandle(std::shared_ptr<const GeoEntity> const &, Axis const &axis = Axis{},
-                    box_type const &range = box_type{{0, 0, 0}, {1, 1, 1}});
+    GeoObjectHandle(const Axis &axis, std::shared_ptr<const GeoEntity> const &,
+                    const box_type &range = {{0, 0, 0}, {1, 1, 1}});
 
    public:
     std::shared_ptr<const GeoEntity> GetBasisGeometry() const;
     void SetBasisGeometry(std::shared_ptr<const GeoEntity> const &);
-    SP_PROPERTY(box_type, ParameterRange);
+
+    box_type GetParameterRange() const { return m_range_; };
+    void SetParameterRange(Real r0, Real r1);
+    void SetParameterRange(point2d_type const &r0, point2d_type const &r1);
+    void SetParameterRange(point_type const &r0, point_type const &r1);
+    void SetParameterRange(box_type const &b);
 
    private:
     std::shared_ptr<const GeoEntity> m_geo_entity_ = nullptr;
+    box_type m_range_{{0, 0, 0}, {1, 1, 1}};
 };
 }  // namespace geometry
 }  // namespace simpla

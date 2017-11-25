@@ -14,12 +14,8 @@ struct Solid : public GeoObjectHandle {
     SP_GEO_OBJECT_HEAD(GeoObjectHandle, Solid);
 
    protected:
-    explicit Solid(std::shared_ptr<const GeoEntity> const &body);
-    explicit Solid(std::shared_ptr<const gBody> const &body, Axis const &axis, Real u_min, Real u_max, Real v_min,
-                   Real v_max, Real w_min, Real w_max);
-    explicit Solid(std::shared_ptr<const gBody> const &body, Axis const &axis, point_type const &u_min,
-                   point_type const &u_max);
-    explicit Solid(std::shared_ptr<const gBody> const &body, Axis const &axis, box_type const &);
+    explicit Solid(Axis const &axis, std::shared_ptr<const gBody> const &body,
+                   box_type const &range = box_type{{0, 0, 0}, {1, 1, 1}});
 
    public:
     void SetBody(std::shared_ptr<const gBody> const &s);
