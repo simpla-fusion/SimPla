@@ -45,6 +45,7 @@ struct Axis : public data::Serializable, public data::Configurable {
         : Axis(origin, x_axis, y_axis, cross(x_axis, y_axis)) {}
     Axis(point_type const &origin, vector_type const &x_axis)
         : Axis(origin, x_axis, detail::make_perp1(x_axis), detail::make_perp2(x_axis)) {}
+    Axis(point_type const &origin) : Axis(origin, vector_type{1, 0, 0}, vector_type{0, 1, 0}, vector_type{0, 0, 1}) {}
     ~Axis() override = default;
 
     void swap(Axis &other) {

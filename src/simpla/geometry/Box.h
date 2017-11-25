@@ -25,7 +25,10 @@ struct Box : public Solid {
     SP_PROPERTY(vector_type, Extents);
     //    point_type xyz(Real u, Real v, Real w) const override;
     //    point_type uvw(Real x, Real y, Real z) const override;
-    //    box_type GetBoundingBox() const override;
+    box_type GetBoundingBox() const override;
+    bool CheckIntersection(point_type const &x, Real tolerance) const override;
+    bool CheckIntersection(box_type const &, Real tolerance) const override;
+    bool CheckIntersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
     //    bool CheckIntersection(box_type const &, Real tolerance) const override;
     //    bool CheckIntersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
     //    std::shared_ptr<Point> GetIntersectionion(std::shared_ptr<const Point> const &g, Real tolerance) const

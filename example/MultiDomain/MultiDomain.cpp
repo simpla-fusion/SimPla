@@ -58,6 +58,7 @@ int main(int argc, char **argv) {
     });
 
     auto pml = scenario->NewDomain<SimplePML>("PML");
+    CHECK(center->GetBoundary()->GetBoundingBox());
     pml->SetCenterBox(center->GetBoundary()->GetBoundingBox());
     scenario->GetAtlas()->SetBoundingBox(box_type{{-15, -25, -25}, {15, 25, 25}});
     scenario->GetAtlas()->SetPeriodicDimensions({1, 1, 1});
