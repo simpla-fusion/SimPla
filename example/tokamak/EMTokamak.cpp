@@ -40,16 +40,17 @@ int main(int argc, char** argv) {
 
     scenario->GetAtlas()->NewChart<sg::csCylindrical>(point_type{0, 0, 0}, vector_type{0.1, PI / 32, 0.1});
     scenario->GetAtlas()->SetPeriodicDimensions({1, 1, 1});
-    scenario->GetAtlas()->SetBoundingBox(box_type{{1.2, -PI / 4, -1.4}, {1.8, PI / 4, 1.4}});
+    scenario->GetAtlas()->SetBoundingBox(box_type{{1.2, -PI / 4, -1.4}, {2.4, PI / 4, 1.4}});
     auto tokamak = sp::Tokamak::New("/home/salmon/workspace/SimPla/scripts/gfile/g038300.03900");
     auto g_boundary = sg::MakeRevolution(tokamak->Boundary(), -PI / 4, PI / 4);
     auto g_limiter = sg::MakeRevolution(tokamak->Limiter(), -PI / 4, PI / 4);
     auto d_limiter = scenario->NewDomain<domain::Maxwell<domain_type>>("Limiter", g_limiter);
     d_limiter->AddPostInitialCondition([=](auto* self, Real time_now) {
         self->B = [&](point_type const& x) {
-            return point_type{std::cos(2 * PI * x[1] / 60) * std::cos(2 * PI * x[2] / 50),
-                              std::cos(2 * PI * x[0] / 40) * std::cos(2 * PI * x[2] / 50),
-                              std::cos(2 * PI * x[0] / 40) * std::cos(2 * PI * x[1] / 60)};
+            return tokamak->B(x);
+            //            return point_type{std::cos(2 * PI * x[1] / 60) * std::cos(2 * PI * x[2] / 50),
+            //                              std::cos(2 * PI * x[0] / 40) * std::cos(2 * PI * x[2] / 50),
+            //                              std::cos(2 * PI * x[0] / 40) * std::cos(2 * PI * x[1] / 60)};
         };
 
     });
