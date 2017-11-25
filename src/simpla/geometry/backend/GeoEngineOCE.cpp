@@ -152,9 +152,9 @@ std::shared_ptr<TDest> oce_cast(std::shared_ptr<const TSrc> const &obj) {
 template <typename TDest>
 std::shared_ptr<TDest> oce_cast(std::shared_ptr<const GeoObjectOCE> const &obj);
 
-std::shared_ptr<TopoDS_Shape> make_oce_shape(std::shared_ptr<const GeoEntity> const &geo, Axis const &g_axis,
+std::shared_ptr<TopoDS_Shape> make_oce_shape(Axis const &g_axis, std::shared_ptr<const GeoEntity> const &geo,
                                              box_type const &range);
-std::shared_ptr<TopoDS_Wire> make_oce_shape(std::shared_ptr<const gPolygon2D> const &polygon, Axis const &axis,
+std::shared_ptr<TopoDS_Wire> make_oce_shape(Axis const &axis, std::shared_ptr<const gPolygon2D> const &polygon,
                                             std::tuple<Real, Real> const &range) {
     std::shared_ptr<TopoDS_Wire> res = nullptr;
     BRepBuilderAPI_MakePolygon oce_polygon;
@@ -166,7 +166,7 @@ std::shared_ptr<TopoDS_Wire> make_oce_shape(std::shared_ptr<const gPolygon2D> co
 
     return res;
 };
-std::shared_ptr<TopoDS_Edge> make_oce_shape(std::shared_ptr<const gBoundedCurve2D> const &g, Axis const &axis,
+std::shared_ptr<TopoDS_Edge> make_oce_shape(Axis const &axis, std::shared_ptr<const gBoundedCurve2D> const &g,
                                             std::tuple<Real, Real> const &range) {
     auto num = g->size() - 2;
     Handle(TColgp_HArray1OfPnt) gp_array = new TColgp_HArray1OfPnt(1, static_cast<Standard_Integer>(num));
@@ -176,7 +176,7 @@ std::shared_ptr<TopoDS_Edge> make_oce_shape(std::shared_ptr<const gBoundedCurve2
 
     return std::make_shared<TopoDS_Edge>(BRepBuilderAPI_MakeEdge(sp.Curve()));
 };
-std::shared_ptr<TopoDS_Wire> make_oce_shape(std::shared_ptr<const gPolygon> const &polygon, Axis const &axis,
+std::shared_ptr<TopoDS_Wire> make_oce_shape(Axis const &axis, std::shared_ptr<const gPolygon> const &polygon,
                                             std::tuple<Real, Real> const &range) {
     BRepBuilderAPI_MakePolygon oce_polygon;
     for (size_type s = 0, se = polygon->size(); s < se; ++s) {
@@ -186,7 +186,7 @@ std::shared_ptr<TopoDS_Wire> make_oce_shape(std::shared_ptr<const gPolygon> cons
     return std::make_shared<TopoDS_Wire>(oce_polygon.Wire());
 }
 
-std::shared_ptr<TopoDS_Edge> make_oce_shape(std::shared_ptr<const gBoundedCurve> const &g, Axis const &axis,
+std::shared_ptr<TopoDS_Edge> make_oce_shape(Axis const &axis, std::shared_ptr<const gBoundedCurve> const &g,
                                             std::tuple<Real, Real> const &range) {
     auto num = g->size() - 2;
     Handle(TColgp_HArray1OfPnt) gp_array = new TColgp_HArray1OfPnt(1, static_cast<Standard_Integer>(num));
@@ -196,44 +196,44 @@ std::shared_ptr<TopoDS_Edge> make_oce_shape(std::shared_ptr<const gBoundedCurve>
     return std::make_shared<TopoDS_Edge>(BRepBuilderAPI_MakeEdge(sp.Curve()));
 };
 
-std::shared_ptr<TopoDS_Shape> make_oce_shape(std::shared_ptr<const gCurve> const &g, Axis const &axis,
+std::shared_ptr<TopoDS_Shape> make_oce_shape(Axis const &axis, std::shared_ptr<const gCurve> const &g,
                                              std::tuple<Real, Real> const &range) {
     std::shared_ptr<TopoDS_Shape> res = nullptr;
     if (auto polygon = std::dynamic_pointer_cast<const gPolygon>(g)) {
-        res = make_oce_shape(polygon, axis, range);
+        res = make_oce_shape(axis, polygon, range);
     } else if (auto polygon2d = std::dynamic_pointer_cast<const gPolygon2D>(g)) {
-        res = make_oce_shape(polygon2d, axis, range);
+        res = make_oce_shape(axis, polygon2d, range);
     } else if (auto bc = std::dynamic_pointer_cast<const gBoundedCurve>(g)) {
-        res = make_oce_shape(bc, axis, range);
+        res = make_oce_shape(axis, bc, range);
     } else if (auto bc2 = std::dynamic_pointer_cast<const gBoundedCurve2D>(g)) {
-        res = make_oce_shape(bc2, axis, range);
+        res = make_oce_shape(axis, bc2, range);
     } else {
         res = std::make_shared<TopoDS_Edge>(BRepBuilderAPI_MakeEdge(make_geo_curve(g, axis)));
     }
     return res;
 }
-std::shared_ptr<TopoDS_Wire> make_oce_wire(std::shared_ptr<const gCurve> const &g, Axis const &axis,
+std::shared_ptr<TopoDS_Wire> make_oce_wire(Axis const &axis, std::shared_ptr<const gCurve> const &g,
                                            std::tuple<Real, Real> const &range) {
     std::shared_ptr<TopoDS_Wire> res = nullptr;
     if (auto polygon = std::dynamic_pointer_cast<const gPolygon2D>(g)) {
-        res = make_oce_shape(polygon, axis, range);
+        res = make_oce_shape(axis, polygon, range);
     } else if (auto polygon2d = std::dynamic_pointer_cast<const gPolygon2D>(g)) {
-        res = make_oce_shape(polygon2d, axis, range);
+        res = make_oce_shape(axis, polygon2d, range);
     }
     //    else if (auto bc = std::dynamic_pointer_cast<const gBoundedCurve>(g)) {
-    //        res = make_oce_shape(bc, axis, range);
+    //        res = make_oce_shape( axis, bc,range);
     //    } else if (auto bc2 = std::dynamic_pointer_cast<const gBoundedCurve2D>(g)) {
-    //        res = make_oce_shape(bc2, axis, range);
+    //        res = make_oce_shape( axis, bc2,range);
     //    } else {
     //        res = std::make_shared<TopoDS_Edge>(BRepBuilderAPI_MakeEdge(make_geo_curve(g, axis)));
     //    }
     return res;
 }
-
-std::shared_ptr<TopoDS_Face> make_oce_shape(std::shared_ptr<const gSurface> const &face, Axis const &axis,
-                                            std::tuple<point2d_type, point2d_type> const &range) {
+template <typename TPoint>
+std::shared_ptr<TopoDS_Face> make_oce_shape(Axis const &axis, std::shared_ptr<const gSurface> const &face,
+                                            std::tuple<TPoint, TPoint> const &range) {
     std::shared_ptr<TopoDS_Face> res = nullptr;
-    point2d_type p_min, p_max;
+    TPoint p_min, p_max;
     std::tie(p_min, p_max) = range;
     if (auto plane = std::dynamic_pointer_cast<const gPlane>(face)) {
         gp_Pln g_plane{make_point(axis.o), make_dir(axis.z)};
@@ -243,63 +243,76 @@ std::shared_ptr<TopoDS_Face> make_oce_shape(std::shared_ptr<const gSurface> cons
     }
     return res;
 };
-std::shared_ptr<TopoDS_Solid> make_oce_shape(std::shared_ptr<const gBody> const &geo, Axis const &g_axis,
+std::shared_ptr<TopoDS_Solid> make_oce_shape(Axis const &g_axis, std::shared_ptr<const gBody> const &geo,
                                              box_type const &range) {
     std::shared_ptr<TopoDS_Solid> res = nullptr;
-    auto const &axis = make_axis(g_axis);
     point_type p_min, p_max;
     std::tie(p_min, p_max) = range;
     if (auto box = std::dynamic_pointer_cast<const gBox>(geo)) {
+        vector_type dx = p_max - p_min;
         res = std::make_shared<TopoDS_Solid>(
-            BRepPrimAPI_MakeBox(axis, box->GetExtents()[0], box->GetExtents()[1], box->GetExtents()[2]).Solid());
+            BRepPrimAPI_MakeBox(make_axis(g_axis.Shifted(p_min)), dx[0], dx[1], dx[2]).Solid());
     } else if (auto wedge = std::dynamic_pointer_cast<const gWedge>(geo)) {
-        res = std::make_shared<TopoDS_Solid>(BRepPrimAPI_MakeWedge(axis, wedge->GetExtents()[0], wedge->GetExtents()[1],
-                                                                   wedge->GetExtents()[2], wedge->GetLTX())
-                                                 .Solid());
+        vector_type dx = p_max - p_min;
+        res = std::make_shared<TopoDS_Solid>(
+            BRepPrimAPI_MakeWedge(make_axis(g_axis.Shifted(p_min)), dx[0], dx[1], dx[2], wedge->GetLTX()).Solid());
     } else if (auto sphere = std::dynamic_pointer_cast<const gSphere>(geo)) {
-        res = std::make_shared<TopoDS_Solid>(BRepPrimAPI_MakeSphere(axis, sphere->GetRadius()).Solid());
+        res = std::make_shared<TopoDS_Solid>(BRepPrimAPI_MakeSphere(make_axis(g_axis), sphere->GetRadius()).Solid());
     } else if (auto cylinder = std::dynamic_pointer_cast<const gCylinder>(geo)) {
+        vector_type dx = p_max - p_min;
+        auto t_axis = g_axis;
+        t_axis.Shift(vector_type{0, 0, p_min[2]});
+        t_axis.Rotate(vector_type{0, 0, 1}, p_min[1]);
         res = std::make_shared<TopoDS_Solid>(
-            BRepPrimAPI_MakeCylinder(axis, p_max[0], p_max[2] - p_min[2], p_max[1] - p_min[1]).Solid());
+            BRepPrimAPI_MakeCylinder(make_axis(t_axis), sphere->GetRadius(), dx[1], dx[2]).Solid());
     } else if (auto torus = std::dynamic_pointer_cast<const gTorus>(geo)) {
-        res = std::make_shared<TopoDS_Solid>(
-            BRepPrimAPI_MakeTorus(axis, torus->GetMajorRadius(), torus->GetMinorRadius()).Solid());
+        vector_type dx = p_max - p_min;
+        auto t_axis = g_axis;
+        t_axis.Rotate(vector_type{0, 0, 1}, p_min[1]);
+        res = std::make_shared<TopoDS_Solid>(BRepPrimAPI_MakeTorus(make_axis(g_axis), torus->GetMajorRadius(),
+                                                                   torus->GetMinorRadius(), p_min[1], p_max[1],
+                                                                   p_max[2] - p_min[2])
+                                                 .Solid());
     }
     return res;
 };
-std::shared_ptr<TopoDS_Shape> make_oce_shape(std::shared_ptr<const gSweeping> const &sweeping, Axis const &g_axis,
+std::shared_ptr<TopoDS_Shape> make_oce_shape(Axis const &g_axis, std::shared_ptr<const gSweeping> const &sweeping,
                                              box_type const &range) {
     point_type p_min, p_max;
     std::tie(p_min, p_max) = range;
     std::shared_ptr<TopoDS_Shape> res = nullptr;
 
-    auto basis = make_oce_shape(sweeping->GetBasis(), g_axis.Translated(sweeping->GetRelativeAxis()), range);
     auto path = sweeping->GetPath();
     if (auto circle = std::dynamic_pointer_cast<const gCircle>(path)) {
-        BRepPrimAPI_MakeRevol builder(*basis, gp_Ax1(make_point(g_axis.o), make_dir(g_axis.z)), p_max[2] - p_min[2]);
+        auto t_axis = g_axis.Translated(sweeping->GetRelativeAxis());
+        t_axis.Rotate(vector_type{0, 0, 1}, p_min[2]);
+        BRepPrimAPI_MakeRevol builder(*make_oce_shape(t_axis, sweeping->GetBasis(), range),
+                                      gp_Ax1(make_point(g_axis.o), make_dir(g_axis.z)), p_max[2] - p_min[2]);
         res = std::make_shared<TopoDS_Shape>(builder);
     } else if (auto line = std::dynamic_pointer_cast<const gLine>(path)) {
-        res = std::make_shared<TopoDS_Shape>(BRepPrimAPI_MakePrism(*basis, make_dir(line->GetDirection())));
+        res = std::make_shared<TopoDS_Shape>(BRepPrimAPI_MakePrism(
+            *make_oce_shape(g_axis.Translated(sweeping->GetRelativeAxis()), sweeping->GetBasis(), range),
+            make_dir(line->GetDirection())));
     } else {
-        auto wire = make_oce_wire(path, g_axis, std::make_tuple(p_min[2], p_max[2]));
-        res = std::make_shared<TopoDS_Shape>(BRepOffsetAPI_MakePipe(*wire, *basis));
+        auto wire = make_oce_wire(g_axis, path, std::make_tuple(p_min[2], p_max[2]));
+        res = std::make_shared<TopoDS_Shape>(BRepOffsetAPI_MakePipe(
+            *wire, *make_oce_shape(g_axis.Translated(sweeping->GetRelativeAxis()), sweeping->GetBasis(), range)));
     }
     return res;
 }
-std::shared_ptr<TopoDS_Shape> make_oce_shape(std::shared_ptr<const GeoEntity> const &geo, Axis const &g_axis,
+std::shared_ptr<TopoDS_Shape> make_oce_shape(Axis const &g_axis, std::shared_ptr<const GeoEntity> const &geo,
                                              box_type const &range) {
     point_type p_min, p_max;
     std::tie(p_min, p_max) = range;
     std::shared_ptr<TopoDS_Shape> res = nullptr;
     if (auto sweeping = std::dynamic_pointer_cast<const gSweeping>(geo)) {
-        res = make_oce_shape(sweeping, g_axis, range);
+        res = make_oce_shape(g_axis, sweeping, range);
     } else if (auto curve = std::dynamic_pointer_cast<const gCurve>(geo)) {
-        res = make_oce_shape(curve, g_axis, std::make_tuple(p_min[0], p_max[0]));
+        res = make_oce_shape(g_axis, curve, std::make_tuple(p_min[0], p_max[0]));
     } else if (auto surface = std::dynamic_pointer_cast<const gSurface>(geo)) {
-        res = make_oce_shape(surface, g_axis,
-                             std::make_tuple(point2d_type{p_min[0], p_max[0]}, point2d_type{p_max[0], p_max[1]}));
+        res = make_oce_shape(g_axis, surface, range);
     } else if (auto body = std::dynamic_pointer_cast<const gBody>(geo)) {
-        res = make_oce_shape(body, g_axis, range);
+        res = make_oce_shape(g_axis, body, range);
     } else {
         VERBOSE << FILE_LINE_STAMP << *geo;
         UNIMPLEMENTED;
@@ -315,13 +328,13 @@ struct OCECast<TDest, TSrc, std::enable_if_t<std::is_base_of<GeoObject, TSrc>::v
         } else if (auto oce = std::dynamic_pointer_cast<GeoObjectOCE const>(g)) {
             res = oce_cast<TopoDS_Shape>(oce);
         } else if (auto c = std::dynamic_pointer_cast<Edge const>(g)) {
-            res = make_oce_shape(c->GetCurve(), c->GetAxis(), c->GetParameterRange());
+            res = make_oce_shape(c->GetAxis(), c->GetCurve(), c->GetParameterRange());
         } else if (auto f = std::dynamic_pointer_cast<Face const>(g)) {
-            res = make_oce_shape(f->GetSurface(), f->GetAxis(), f->GetParameterRange());
+            res = make_oce_shape(f->GetAxis(), f->GetSurface(), f->GetParameterRange());
         } else if (auto s = std::dynamic_pointer_cast<Solid const>(g)) {
-            res = make_oce_shape(s->GetBody(), s->GetAxis(), s->GetParameterRange());
+            res = make_oce_shape(s->GetAxis(), s->GetBody(), s->GetParameterRange());
         } else if (auto h = std::dynamic_pointer_cast<GeoObjectHandle const>(g)) {
-            res = make_oce_shape(h->GetBasisGeometry(), h->GetAxis(), h->GetParameterRange());
+            res = make_oce_shape(h->GetAxis(), h->GetBasisGeometry(), h->GetParameterRange());
         } else {
             UNIMPLEMENTED;
         }

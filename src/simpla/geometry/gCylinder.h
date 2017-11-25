@@ -18,6 +18,8 @@ namespace geometry {
 */
 struct gCylinder : public gBody {
     SP_GEO_ENTITY_HEAD(gBody, gCylinder, Cylinder)
+    explicit gCylinder(Real radius) : m_Radius_(radius) {}
+    SP_PROPERTY(Real, Radius) = 1.0;
     point_type xyz(Real u, Real v, Real w) const override { return point_type{u * std::cos(v), u * std::sin(v), w}; };
 };
 struct gCylindricalSurface : public gConicSurface {

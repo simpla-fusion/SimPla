@@ -19,10 +19,10 @@ struct gCurve;
 std::shared_ptr<GeoObject> MakeRevolution(std::shared_ptr<const GeoEntity> const& geo, Axis const& r_axis = Axis{},
                                           box_type const& range = box_type{{0, 0, 0}, {0, 0, TWOPI}},
                                           Axis const& g_axis = Axis{});
-std::shared_ptr<GeoObject> MakeRevolution(std::shared_ptr<const GeoEntity> const& geo, Real angle0, Real angle1,
-                                          Real u0 = 0, Real u1 = 1, Real v0 = 0, Real v1 = 1, Real radius = 0,
+std::shared_ptr<GeoObject> MakeRevolution(std::shared_ptr<const GeoEntity> const& geo, Real angle0 = 0,
+                                          Real angle1 = TWOPI, Real radius = 0,
                                           vector_type const& Nx = vector_type{1, 0, 0},
-                                          vector_type const& Ny = vector_type{0, 1, 0}, Axis const& = Axis{});
+                                          vector_type const& Ny = vector_type{0, 0, 1}, Axis const& = Axis{});
 
 std::shared_ptr<GeoObject> MakePrism(std::shared_ptr<const GeoEntity> const& geo, vector_type const& direction,
                                      Real u = 1, Axis const& = Axis{});

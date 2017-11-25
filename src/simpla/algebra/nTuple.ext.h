@@ -159,7 +159,12 @@ template <typename T>
 auto normal(T const& l, ENABLE_IF((std::rank<T>::value > 0))) {
     return (l / (std::sqrt(inner_product(l, l))));
 }
-
+template <typename T>
+nTuple<T, 3> rotate(nTuple<T, 3> const& v, nTuple<T, 3> const& u, T angle) {
+    Real cosA = std::cos(angle);
+    Real sinA = std::sin(angle);
+    return (cosA * v + sinA * cross(u, v) + (1 - cosA) * dot(u, v) * u) / dot(u, u);
+}
 template <typename T>
 auto abs(T const& l, ENABLE_IF((std::rank<T>::value > 0))) {
     return std::sqrt(inner_product(l, l));

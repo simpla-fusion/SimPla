@@ -77,12 +77,15 @@ struct Axis : public data::Serializable, public data::Configurable {
 
     void Mirror(const point_type &p);
     void Mirror(const Axis &a1);
+    void Rotate(vector_type const &dir, Real angle);
     void Rotate(const Axis &a1, Real angle);
     void Scale(Real s, int dir = -1);
     void Translate(const vector_type &v);
     void Translate(Axis const &v);
-    void Move(const point_type &p);
-    Axis Moved(const point_type &p) const;
+    void Shift(const point_type &o_uvw);
+    Axis Shifted(const point_type &o_uvw) const;
+    void Move(const point_type &o_xyz);
+    Axis Moved(const point_type &o_xyz) const;
 
     template <typename UTrans>
     Axis Translated(const UTrans &transf) const {

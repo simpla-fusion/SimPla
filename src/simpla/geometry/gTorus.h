@@ -32,7 +32,7 @@ struct gTorus : public gBody {
     SP_PROPERTY(Real, MinMajorAngle);
     SP_PROPERTY(Real, MinMinorAngle);
     SP_PROPERTY(Real, MaxMinorAngle);
-    point_type xyz(Real phi, Real theta, Real r) const override {
+    point_type xyz(Real r, Real theta, Real phi) const override {
         Real R = (m_MajorRadius_ + r * std::cos(theta));
         return point_type{R * std::cos(phi), R * std::sin(phi), r * std::sin(theta)};
     };

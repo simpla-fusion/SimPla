@@ -78,16 +78,13 @@ std::shared_ptr<GeoObject> csCylindrical::GetCoordinateBox(box_type const &b) co
     point_type p0, p1;
     p0[0] = std::get<0>(b)[RAxis];
     p1[0] = std::get<1>(b)[RAxis];
-    p0[1] = std::get<0>(b)[RAxis];
-    p1[1] = std::get<1>(b)[ZAxis];
     p0[2] = std::get<0>(b)[PhiAxis];
     p1[2] = std::get<1>(b)[PhiAxis];
-    auto axis = GetLocalAxis(std::get<0>(b));
-    CHECK(p0);
-    CHECK(p1);
-    return GeoObjectHandle::New(
-        axis, gSweeping::New(gPlane::New(), gCircle::New(std::get<0>(b)[RAxis]), Axis{{1, 0, 0}, {0, 0, 1}, {0, 1, 0}}),
-        std::make_tuple(p0, p1));
+    p0[1] = std::get<0>(b)[ZAxis];
+    p1[1] = std::get<1>(b)[ZAxis];
+    return GeoObjectHandle::New(m_axis_,
+                                gSweeping::New(gPlane::New(), gCircle::New(), Axis{{1, 0, 0}, {0, 0, 1}, {0, 1, 0}}),
+                                std::make_tuple(p0, p1));
 };
 
 }  // namespace geometry
