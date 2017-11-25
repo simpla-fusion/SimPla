@@ -6,6 +6,7 @@
 #include <simpla/SIMPLA_config.h>
 #include "GeoAlgorithm.h"
 #include "GeoObject.h"
+#include "gBox.h"
 namespace simpla {
 namespace geometry {
 SP_GEO_OBJECT_REGISTER(Box)
@@ -17,7 +18,7 @@ Box::Box(point_type const &p0, point_type const &p1)
           p1 - p0) {}
 Box::Box(box_type const &b) : Box(std::get<0>(b), std::get<1>(b)) {}
 Box::Box(Axis const &axis, vector_type const &extents)
-    : Solid(axis, nullptr, std::make_tuple(point_type{0, 0, 0}, extents)) {}
+    : Solid(axis, gBox::New(), std::make_tuple(point_type{0, 0, 0}, extents)) {}
 
 // box_type Box::GetBoundingBox() const { return std::make_tuple(m_axis_.o, m_axis_.xyz(m_extents_)); };
 // point_type Box::xyz(Real u, Real v, Real w) const { return m_axis_.xyz(u, v, w); };

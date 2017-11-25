@@ -79,7 +79,7 @@ void GeoObjectHandle::Deserialize(std::shared_ptr<const simpla::data::DataEntry>
 }
 std::shared_ptr<simpla::data::DataEntry> GeoObjectHandle::Serialize() const {
     auto res = base_type::Serialize();
-    res->Set("Geometry", m_geo_entity_->Serialize());
+    if (m_geo_entity_ != nullptr) res->Set("Geometry", m_geo_entity_->Serialize());
     res->SetValue("ParameterRange", m_range_);
     return res;
 };
