@@ -68,6 +68,7 @@
 #include <XCAFDoc_ShapeTool.hxx>
 #include <gp_Pln.hxx>
 #include <gp_Quaternion.hxx>
+#include <simpla/geometry/GeoAlgorithm.h>
 #include "../Box.h"
 #include "../Edge.h"
 #include "../Face.h"
@@ -362,6 +363,8 @@ struct GeoObjectOCE : public GeoObject {
     box_type GetBoundingBox() const override;
     bool CheckIntersection(point_type const &x, Real tolerance) const override;
     bool CheckIntersection(box_type const &, Real tolerance) const override;
+    bool CheckIntersection(std::shared_ptr<const GeoObject> const &, Real tolerance) const override;
+
     std::shared_ptr<GeoObject> GetUnion(std::shared_ptr<const GeoObject> const &g, Real tolerance) const override;
     std::shared_ptr<GeoObject> GetDifference(std::shared_ptr<const GeoObject> const &g, Real tolerance) const override;
     std::shared_ptr<GeoObject> GetIntersection(std::shared_ptr<const GeoObject> const &g,
@@ -371,7 +374,6 @@ struct GeoObjectOCE : public GeoObject {
     Real m_measure_ = SP_SNaN;
     std::shared_ptr<TopoDS_Shape> m_occ_shape_ = nullptr;
     box_type m_bounding_box_{{0, 0, 0}, {0, 0, 0}};
-
     Bnd_Box m_occ_box_;
 };
 
@@ -506,11 +508,20 @@ bool GeoObjectOCE::CheckIntersection(point_type const &x, Real tolerance) const 
     return dist.InnerSolution();
 };
 bool GeoObjectOCE::CheckIntersection(box_type const &b, Real tolerance) const {
-    BRepPrimAPI_MakeBox box(make_point(std::get<0>(b)), make_point(std::get<1>(b)));
-    BRepExtrema_DistShapeShape dist(*m_occ_shape_, box.Solid());
-    dist.Perform();
-    return dist.InnerSolution();
+    //    BRepPrimAPI_MakeBox box(make_point(std::get<0>(b)), make_point(std::get<1>(b)));
+    //    BRepExtrema_DistShapeShape dist(*m_occ_shape_, box.Solid());
+    //    dist.Perform();
+    //    return dist.InnerSolution();
+    return CheckIntersection(Box::New(b), tolerance);
 };
+bool GeoObjectOCE::CheckIntersection(std::shared_ptr<const GeoObject> const &g, Real tolerance) const {
+    //    BRepExtrema_DistShapeShape dist(*m_occ_shape_, *GeoObjectOCE::New(g)->m_occ_shape_);
+    //    dist.Perform();
+    //    return dist.InnerSolution();
+
+    return CheckBoxOverlapped(GetBoundingBox(), g->GetBoundingBox());
+};
+
 std::shared_ptr<GeoObject> GeoObjectOCE::GetUnion(std::shared_ptr<const GeoObject> const &g, Real tolerance) const {
     auto res = GeoObjectOCE::New();
     auto other = GeoObjectOCE::New(g);
@@ -797,8 +808,6 @@ void GeoEngineOCE::Save(std::shared_ptr<const GeoObject> const &geo, std::string
     if (geo == nullptr) {
         VERBOSE << (name_s) << " is null!";
         return;
-    } else {
-        VERBOSE << name_s << " : " << *geo;
     }
     auto oce_shape = oce_cast<TopoDS_Shape>(geo);
     ASSERT(oce_shape != nullptr);
@@ -839,13 +848,13 @@ bool GeoEngineOCE::CheckIntersection(std::shared_ptr<const GeoObject> const &g, 
 }
 bool GeoEngineOCE::CheckIntersection(std::shared_ptr<const GeoObject> const &g, box_type const &b,
                                      Real tolerance) const {
-    bool res = false;
-    if (g != nullptr) { res = GeoObjectOCE::New(g)->CheckIntersection(b, tolerance); }
-    return res;
+    return base_type::CheckIntersection(g, b, tolerance);
 }
-bool GeoEngineOCE::CheckIntersection(std::shared_ptr<const GeoObject> const &, std::shared_ptr<const GeoObject> const &,
-                                     Real tolerance) const {
-    return false;
+bool GeoEngineOCE::CheckIntersection(std::shared_ptr<const GeoObject> const &g0,
+                                     std::shared_ptr<const GeoObject> const &g1, Real tolerance) const {
+    bool res = false;
+    if (g0 != nullptr) { res = GeoObjectOCE::New(g0)->CheckIntersection(g1, tolerance); }
+    return res;
 };
 
 std::shared_ptr<GeoObject> GeoEngineOCE::GetUnion(std::shared_ptr<const GeoObject> const &g0,

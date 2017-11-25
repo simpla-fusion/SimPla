@@ -209,7 +209,6 @@ std::shared_ptr<DomainBase> Scenario::GetDomain(std::string const &k) const {
     auto it = m_pimpl_->m_domains_.find(k);
     return (it == m_pimpl_->m_domains_.end()) ? nullptr : it->second;
 }
-
 box_type Scenario::FitBoundingBox() const {
     auto it = m_pimpl_->m_domains_.begin();
     box_type bounding_box = it->second->GetBoundary()->GetBoundingBox();

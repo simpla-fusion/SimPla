@@ -35,9 +35,9 @@ int main(int argc, char **argv) {
         argc, argv, [&](std::string const &opt, std::string const &value) -> int {
             if (false) {
             } else if (opt == "n") {
-                num_of_step = static_cast<size_type>(std::atoi(value.c_str()));
+                num_of_step = static_cast<size_type>(std::stol(value));
             } else if (opt == "checkpoint") {
-                checkpoint_interval = static_cast<size_type>(std::atoi(value.c_str()));
+                checkpoint_interval = static_cast<size_type>(std::stol(value));
             }
             return CONTINUE;
         });
@@ -78,6 +78,7 @@ int main(int argc, char **argv) {
 
     scenario->Run();
 
+    scenario->Dump();
     scenario->TearDown();
     simpla::Finalize();
 }
