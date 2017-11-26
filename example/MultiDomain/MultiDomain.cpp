@@ -14,14 +14,9 @@
 #include <simpla/predefine/engine/SimpleTimeIntegrator.h>
 #include <simpla/predefine/physics/Maxwell.h>
 #include <simpla/predefine/physics/PML.h>
-#include <simpla/scheme/FVM.h>
+#include <simpla/predefine/physics/PredefineDomains.h>
 #include <simpla/utilities/Logo.h>
 #include <simpla/utilities/parse_command_line.h>
-namespace simpla {
-using SimpleMaxwell = domain::Maxwell<engine::Domain<geometry::csCartesian, scheme::FVM, mesh::CoRectMesh>>;
-using SimplePML = domain::PML<engine::Domain<geometry::csCartesian, scheme::FVM, mesh::CoRectMesh>>;
-
-}  // namespace simpla {
 
 using namespace simpla;
 using namespace simpla::engine;
@@ -46,7 +41,7 @@ int main(int argc, char **argv) {
     scenario->SetName("MultiDomain");
     scenario->SetAtlas(Atlas::Create<sg::csCartesian>());
 
-    auto center = scenario->NewDomain<SimpleMaxwell>("Center");
+    auto center = scenario->NewDomain<domain::Maxwell<CartesianFVM>>("Center");
     center->SetBoundary(geometry::Box::New(box_type{{-15, -25, -20}, {15, 25, 20}}));
     center->AddPostInitialCondition([=](auto *self, Real time_now) {
         self->B = [&](point_type const &x) {
@@ -57,7 +52,7 @@ int main(int argc, char **argv) {
         };
     });
 
-    auto pml = scenario->NewDomain<SimplePML>("PML");
+    auto pml = scenario->NewDomain<domain::PML<CartesianFVM>>("PML");
     CHECK(center->GetBoundary()->GetBoundingBox());
     pml->SetCenterBox(center->GetBoundary()->GetBoundingBox());
     scenario->GetAtlas()->SetBoundingBox(box_type{{-20, -30, -20}, {20, 30, 20}});
