@@ -13,6 +13,7 @@
 #include <simpla/geometry/csCylindrical.h>
 #include <simpla/mesh/CoRectMesh.h>
 #include <simpla/mesh/RectMesh.h>
+#include <simpla/mesh/EBDomain.h>
 #include <simpla/predefine/device/ICRFAntenna.h>
 #include <simpla/predefine/device/Tokamak.h>
 #include <simpla/predefine/engine/SimpleTimeIntegrator.h>
@@ -23,7 +24,7 @@
 namespace sg = simpla::geometry;
 namespace sp = simpla;
 namespace simpla {
-typedef engine::Domain<geometry::csCylindrical, scheme::FVM, mesh::RectMesh /*, mesh::EBMesh*/> domain_type;
+typedef engine::Domain<geometry::csCylindrical, scheme::FVM, mesh::RectMesh, mesh::EBMesh> domain_type;
 
 }  // namespace simpla {
 

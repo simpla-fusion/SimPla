@@ -18,6 +18,16 @@
 namespace simpla {
 namespace mesh {
 using namespace data;
+
+struct EBMeshBase {
+    void init() {
+//        InitializeAttribute(&m_node_tag_);
+//        InitializeAttribute(&m_edge_frac_);
+//        m_edge_frac_[0].Fill(1.0);
+//        m_edge_frac_[1].Fill(1.0);
+//        m_edge_frac_[2].Fill(1.0);
+    }
+};
 template <typename THost>
 struct EBMesh {
     SP_DOMAIN_POLICY_HEAD(EBMesh);
@@ -33,6 +43,11 @@ struct EBMesh {
     //    Field<host_type, Real, NODE, 3> m_edge_tag_d_{m_domain_, "name"_ = "edge_tag_d"};
     //    Field<host_type, Real, FACE> m_face_tag_{m_domain_, "name"_ = "face_tag"};
     engine::AttributeT<Real, CELL> m_volume_tag_{m_host_, "Name"_ = "volume_tag"};
+
+    engine::AttributeT<unsigned int, NODE> m_node_tag_{m_host_, "Name"_ = "node_tag"};
+    engine::AttributeT<Real, EDGE> m_edge_frac_{m_host_, "Name"_ = "edge_frac"};
+    engine::AttributeT<Real, FACE> m_face_frac_{m_host_, "Name"_ = "face_frac"};
+    engine::AttributeT<Real, CELL> m_cell_frac_{m_host_, "Name"_ = "cell_frac"};
 };
 template <typename THost>
 EBMesh<THost>::EBMesh(THost *h) : m_host_(h) {}

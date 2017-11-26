@@ -10,7 +10,7 @@
 #include "simpla/data/Data.h"
 #include "simpla/engine/Domain.h"
 
-#include "StructuredMesh.h"
+#include "simpla/mesh/StructuredMesh.h"
 namespace simpla {
 namespace mesh {
 using namespace simpla::data;
@@ -21,7 +21,7 @@ using namespace simpla::data;
  */
 template <typename THost>
 struct SMesh : public StructuredMesh {
-    SP_ENGINE_POLICY_HEAD(SMesh);
+    SP_DOMAIN_POLICY_HEAD(SMesh);
 
     void InitialCondition(Real time_now);
     void BoundaryCondition(Real time_now, Real time_dt);
@@ -29,29 +29,28 @@ struct SMesh : public StructuredMesh {
    public:
     //    point_type local_coordinates(index_type x, index_type y, index_type z, Real const *r) const override;
 
-    Field<host_type, Real, NODE, 3> m_coordinates_{m_host_, "name"_ = "m_coordinates_" /*, "COORDINATES"_*/};
-    Field<host_type, Real, NODE, 3> m_vertices_{m_host_, "name"_ = "m_vertices_"};
-
-    Field<host_type, Real, NODE> m_vertex_volume_{m_host_, "name"_ = "m_vertex_volume_"};
-    Field<host_type, Real, NODE> m_vertex_inv_volume_{m_host_, "name"_ = "m_vertex_inv_volume_"};
-    Field<host_type, Real, NODE> m_vertex_dual_volume_{m_host_, "name"_ = "m_vertex_dual_volume_"};
-    Field<host_type, Real, NODE> m_vertex_inv_dual_volume_{m_host_, "name"_ = "m_vertex_inv_dual_volume_"};
-    Field<host_type, Real, CELL> m_volume_volume_{m_host_, "name"_ = "m_volume_volume_"};
-    Field<host_type, Real, CELL> m_volume_inv_volume_{m_host_, "name"_ = "m_volume_inv_volume_"};
-    Field<host_type, Real, CELL> m_volume_dual_volume_{m_host_, "name"_ = "m_volume_dual_volume_"};
-    Field<host_type, Real, CELL> m_volume_inv_dual_volume_{m_host_, "name"_ = "m_volume_inv_dual_volume_"};
-    Field<host_type, Real, EDGE> m_edge_volume_{m_host_, "name"_ = "m_edge_volume_"};
-    Field<host_type, Real, EDGE> m_edge_inv_volume_{m_host_, "name"_ = "m_edge_inv_volume_"};
-    Field<host_type, Real, EDGE> m_edge_dual_volume_{m_host_, "name"_ = "m_edge_dual_volume_"};
-    Field<host_type, Real, EDGE> m_edge_inv_dual_volume_{m_host_, "name"_ = "m_edge_inv_dual_volume_"};
-    Field<host_type, Real, FACE> m_face_volume_{m_host_, "name"_ = "m_face_volume_"};
-    Field<host_type, Real, FACE> m_face_inv_volume_{m_host_, "name"_ = "m_face_inv_volume_"};
-    Field<host_type, Real, FACE> m_face_dual_volume_{m_host_, "name"_ = "m_face_dual_volume_"};
-    Field<host_type, Real, FACE> m_face_inv_dual_volume_{m_host_, "name"_ = "m_face_inv_dual_volume_"};
-    Field<host_type, Real, NODE> m_vertex_hodge_{m_host_, "name"_ = "m_vertex_hodge_"};
-    Field<host_type, Real, EDGE> m_edge_hodge_{m_host_, "name"_ = "m_edge_hodge_"};
-    Field<host_type, Real, FACE> m_face_hodge_{m_host_, "name"_ = "m_face_hodge_"};
-    Field<host_type, Real, CELL> m_volume_hodge_{m_host_, "name"_ = "m_volume_hodge_"};
+    engine::AttributeT<Real, NODE, 3> m_coordinates_{m_host_, "name"_ = "m_coordinates_" /*, "COORDINATES"_*/};
+    engine::AttributeT<Real, NODE, 3> m_vertices_{m_host_, "name"_ = "m_vertices_"};
+    engine::AttributeT<Real, NODE> m_vertex_volume_{m_host_, "name"_ = "m_vertex_volume_"};
+    engine::AttributeT<Real, NODE> m_vertex_inv_volume_{m_host_, "name"_ = "m_vertex_inv_volume_"};
+    engine::AttributeT<Real, NODE> m_vertex_dual_volume_{m_host_, "name"_ = "m_vertex_dual_volume_"};
+    engine::AttributeT<Real, NODE> m_vertex_inv_dual_volume_{m_host_, "name"_ = "m_vertex_inv_dual_volume_"};
+    engine::AttributeT<Real, CELL> m_volume_volume_{m_host_, "name"_ = "m_volume_volume_"};
+    engine::AttributeT<Real, CELL> m_volume_inv_volume_{m_host_, "name"_ = "m_volume_inv_volume_"};
+    engine::AttributeT<Real, CELL> m_volume_dual_volume_{m_host_, "name"_ = "m_volume_dual_volume_"};
+    engine::AttributeT<Real, CELL> m_volume_inv_dual_volume_{m_host_, "name"_ = "m_volume_inv_dual_volume_"};
+    engine::AttributeT<Real, EDGE> m_edge_volume_{m_host_, "name"_ = "m_edge_volume_"};
+    engine::AttributeT<Real, EDGE> m_edge_inv_volume_{m_host_, "name"_ = "m_edge_inv_volume_"};
+    engine::AttributeT<Real, EDGE> m_edge_dual_volume_{m_host_, "name"_ = "m_edge_dual_volume_"};
+    engine::AttributeT<Real, EDGE> m_edge_inv_dual_volume_{m_host_, "name"_ = "m_edge_inv_dual_volume_"};
+    engine::AttributeT<Real, FACE> m_face_volume_{m_host_, "name"_ = "m_face_volume_"};
+    engine::AttributeT<Real, FACE> m_face_inv_volume_{m_host_, "name"_ = "m_face_inv_volume_"};
+    engine::AttributeT<Real, FACE> m_face_dual_volume_{m_host_, "name"_ = "m_face_dual_volume_"};
+    engine::AttributeT<Real, FACE> m_face_inv_dual_volume_{m_host_, "name"_ = "m_face_inv_dual_volume_"};
+    engine::AttributeT<Real, NODE> m_vertex_hodge_{m_host_, "name"_ = "m_vertex_hodge_"};
+    engine::AttributeT<Real, EDGE> m_edge_hodge_{m_host_, "name"_ = "m_edge_hodge_"};
+    engine::AttributeT<Real, FACE> m_face_hodge_{m_host_, "name"_ = "m_face_hodge_"};
+    engine::AttributeT<Real, CELL> m_volume_hodge_{m_host_, "name"_ = "m_volume_hodge_"};
 };
 //
 // template <typename THost>

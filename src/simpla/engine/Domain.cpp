@@ -17,39 +17,35 @@
 #include "Domain.h"
 namespace simpla {
 namespace engine {
-struct DomainBase::pimpl_s {
-    std::shared_ptr<const geometry::Chart> m_chart_ = nullptr;
-    std::shared_ptr<const geometry::GeoObject> m_boundary_ = nullptr;
-    std::shared_ptr<const MeshBlock> m_mesh_block_ = nullptr;
-};
-DomainBase::DomainBase() : m_pimpl_(new pimpl_s){};
-DomainBase::~DomainBase() { delete m_pimpl_; };
+
+DomainBase::DomainBase(){};
+DomainBase::~DomainBase(){};
 
 std::shared_ptr<data::DataEntry> DomainBase::Serialize() const {
     auto tdb = base_type::Serialize();
     this->OnSerialize(this, tdb);
-    ASSERT(m_pimpl_->m_chart_ != nullptr);
-    tdb->Set("Chart", m_pimpl_->m_chart_->Serialize());
-    if (m_pimpl_->m_boundary_ != nullptr) { tdb->Set("Boundary", m_pimpl_->m_boundary_->Serialize()); }
+    ASSERT(m_chart_ != nullptr);
+    tdb->Set("Chart", m_chart_->Serialize());
+    if (m_boundary_ != nullptr) { tdb->Set("Boundary", m_boundary_->Serialize()); }
     tdb->Set("Attributes", AttributeGroup::Serialize());
     return tdb;
 }
 void DomainBase::Deserialize(std::shared_ptr<const data::DataEntry> const& cfg) {
     base_type::Deserialize(cfg);
     this->OnDeserialize(this, cfg);
-    m_pimpl_->m_boundary_ = geometry::GeoObject::Create(cfg->Get("Boundary"));
-    if (cfg->Get("Chart") != nullptr) { m_pimpl_->m_chart_ = geometry::Chart::Create(cfg->Get("Chart")); }
+    m_boundary_ = geometry::GeoObject::Create(cfg->Get("Boundary"));
+    if (cfg->Get("Chart") != nullptr) { m_chart_ = geometry::Chart::Create(cfg->Get("Chart")); }
     AttributeGroup::Deserialize(cfg->Get("Attributes"));
 };
 
-void DomainBase::SetChart(std::shared_ptr<const geometry::Chart> const& c) { m_pimpl_->m_chart_ = c; }
-std::shared_ptr<const geometry::Chart> DomainBase::GetChart() const { return m_pimpl_->m_chart_; }
+void DomainBase::SetChart(std::shared_ptr<const geometry::Chart> const& c) { m_chart_ = c; }
+std::shared_ptr<const geometry::Chart> DomainBase::GetChart() const { return m_chart_; }
 
-void DomainBase::SetBoundary(std::shared_ptr<const geometry::GeoObject> const& g) { m_pimpl_->m_boundary_ = g; }
-std::shared_ptr<const geometry::GeoObject> DomainBase::GetBoundary() const { return m_pimpl_->m_boundary_; }
+void DomainBase::SetBoundary(std::shared_ptr<const geometry::GeoObject> const& g) { m_boundary_ = g; }
+std::shared_ptr<const geometry::GeoObject> DomainBase::GetBoundary() const { return m_boundary_; }
 
-void DomainBase::SetMeshBlock(std::shared_ptr<const MeshBlock> const& blk) { m_pimpl_->m_mesh_block_ = blk; };
-std::shared_ptr<const MeshBlock> DomainBase::GetMeshBlock() const { return m_pimpl_->m_mesh_block_; }
+void DomainBase::SetMeshBlock(std::shared_ptr<const MeshBlock> const& blk) { m_mesh_block_ = blk; };
+std::shared_ptr<const MeshBlock> DomainBase::GetMeshBlock() const { return m_mesh_block_; }
 box_type DomainBase::GetBlockBox() const { return GetChart()->GetBoxUVW(GetMeshBlock()->GetIndexBox()); }
 void DomainBase::Push(const std::shared_ptr<Patch>& p) {
     SetMeshBlock(p->GetMeshBlock());
@@ -75,9 +71,7 @@ bool DomainBase::CheckBlockInBoundary() const {
     }
     return res;
 }
-//bool DomainBase::CheckBlockOnBoundary() const{
-//    return CheckBlockInBoundary();
-//}
+bool DomainBase::CheckBlockCrossBoundary() const { return false; }
 bool DomainBase::IsInitialized() const { return AttributeGroup::IsInitialized(); }
 
 void DomainBase::DoSetUp() { base_type::DoSetUp(); }
@@ -151,9 +145,6 @@ void DomainBase::TagRefinementCells(Real time_now) {
     //    TagRefinementRange(GetRange(GetName() + "_BOUNDARY_3"));
     DoTagRefinementCells(time_now);
     PostTagRefinementCells(this, time_now);
-}
-std::shared_ptr<DomainBase> DomainBase::AddEmbeddedDomain(std::string const& k, std::shared_ptr<DomainBase> const& b) {
-    return b;
 }
 
 }  // namespace engine{

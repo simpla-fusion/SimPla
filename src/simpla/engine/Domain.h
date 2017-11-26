@@ -30,8 +30,9 @@ class DomainBase : public EngineObject, public AttributeGroup {
     std::shared_ptr<simpla::data::DataEntry> Serialize() const override;
 
    private:
-    struct pimpl_s;
-    pimpl_s *m_pimpl_ = nullptr;
+    std::shared_ptr<const geometry::Chart> m_chart_ = nullptr;
+    std::shared_ptr<const geometry::GeoObject> m_boundary_ = nullptr;
+    std::shared_ptr<const MeshBlock> m_mesh_block_ = nullptr;
 
    public:
     void Push(const std::shared_ptr<Patch> &) override;
@@ -45,8 +46,8 @@ class DomainBase : public EngineObject, public AttributeGroup {
     virtual std::shared_ptr<const MeshBlock> GetMeshBlock() const;
     box_type GetBlockBox() const;
 
-
     virtual bool CheckBlockInBoundary() const;
+    virtual bool CheckBlockCrossBoundary() const;
 
     void SetBoundary(std::shared_ptr<const geometry::GeoObject> const &g);
     std::shared_ptr<const geometry::GeoObject> GetBoundary() const;
@@ -78,9 +79,7 @@ class DomainBase : public EngineObject, public AttributeGroup {
     design_pattern::Signal<void(DomainBase *, Real, Real)> PreComputeFluxes;
     virtual void DoComputeFluxes(Real time_now, Real dt) {}
     design_pattern::Signal<void(DomainBase *, Real, Real)> PostComputeFluxes;
-
     void ComputeFluxes(Real time_now, Real time_dt);
-
     Real ComputeStableDtOnPatch(Real time_now, Real time_dt) const;
 
     design_pattern::Signal<void(DomainBase *, Real, Real)> PreAdvance;
@@ -88,13 +87,10 @@ class DomainBase : public EngineObject, public AttributeGroup {
     design_pattern::Signal<void(DomainBase *, Real, Real)> PostAdvance;
     void Advance(Real time_now, Real time_dt);
 
-    std::shared_ptr<DomainBase> AddEmbeddedDomain(std::string const &k, std::shared_ptr<DomainBase> const &b);
-
 };  // class DomainBase
 
 template <typename TChart, template <typename> class... Policies>
 class Domain : public DomainBase, public Policies<Domain<TChart, Policies...>>... {
-    typedef TChart chart_type;
     SP_ENABLE_NEW_HEAD(DomainBase, Domain);
 
    public:
@@ -108,18 +104,13 @@ class Domain : public DomainBase, public Policies<Domain<TChart, Policies...>>..
     void DoInitialCondition(Real time_now) override;
     void DoBoundaryCondition(Real time_now, Real dt) override;
     void DoAdvance(Real time_now, Real dt) override;
-    void DoTagRefinementCells(Real time_now) override;
+    //    void DoTagRefinementCells(Real time_now) override;
 
     template <typename V, int IFORM, int... DOF, typename TR>
     void Fill(AttributeT<V, IFORM, DOF...> &lhs, TR const &rhs) const;
 
     template <typename U, int IFORM, int... DOF>
     void InitializeAttribute(AttributeT<U, IFORM, DOF...> *attr) const;
-
-    AttributeT<unsigned int, NODE> m_node_tag_{this, "Name"_ = "node_tag"};
-    AttributeT<Real, EDGE> m_edge_frac_{this, "Name"_ = "edge_frac"};
-    AttributeT<Real, FACE> m_face_frac_{this, "Name"_ = "face_frac"};
-    AttributeT<Real, CELL> m_cell_frac_{this, "Name"_ = "cell_frac"};
 
 };  // class Domain
 
@@ -206,19 +197,7 @@ void Domain<TChart, Policies...>::DoTearDown() {
 
 template <typename TChart, template <typename> class... Policies>
 void Domain<TChart, Policies...>::DoInitialCondition(Real time_now) {
-    //    if (CheckBlockInBoundary() == 0)
-    {
-        DomainBase::DoInitialCondition(time_now);
-
-        InitializeAttribute(&m_node_tag_);
-        InitializeAttribute(&m_edge_frac_);
-        m_edge_frac_[0].Fill(1.0);
-        m_edge_frac_[1].Fill(1.0);
-        m_edge_frac_[2].Fill(1.0);
-
-        //        geometry::CutCellTagNode(&m_node_tag_, &m_edge_frac_[0], GetChart(),
-        //        GetMeshBlock()->GetIndexBox(), GetBoundary(), 0b001);
-    }
+    if (CheckBlockInBoundary()) { DomainBase::DoInitialCondition(time_now); }
 }
 
 template <typename TChart, template <typename> class... Policies>
@@ -227,8 +206,8 @@ void Domain<TChart, Policies...>::DoBoundaryCondition(Real time_now, Real dt) {}
 template <typename TChart, template <typename> class... Policies>
 void Domain<TChart, Policies...>::DoAdvance(Real time_now, Real dt) {}
 
-template <typename TChart, template <typename> class... Policies>
-void Domain<TChart, Policies...>::DoTagRefinementCells(Real time_now) {}
+// template <typename TChart, template <typename> class... Policies>
+// void Domain<TChart, Policies...>::DoTagRefinementCells(Real time_now) {}
 
 namespace detail {
 template <typename U, typename SFC>

@@ -45,9 +45,9 @@ void TimeIntegrator::Advance(Real time_now, Real time_dt) {
             item.second->Push(patch->Pop());
 
             if (item.second->CheckBlockInBoundary()) {
-                if (item.second->IsInitialized()) { item.second->InitialCondition(time_now); }
+                if (!item.second->IsInitialized()) { item.second->InitialCondition(time_now); }
                 item.second->Advance(time_now, time_dt);
-                if (item.second->CheckBlockInBoundary() == 0) { item.second->BoundaryCondition(time_now, time_dt); }
+                if (item.second->CheckBlockCrossBoundary()) { item.second->BoundaryCondition(time_now, time_dt); }
             }
             patch->Push(item.second->Pop());
         }
