@@ -75,7 +75,9 @@ bool DomainBase::CheckBlockInBoundary() const {
     }
     return res;
 }
-
+//bool DomainBase::CheckBlockOnBoundary() const{
+//    return CheckBlockInBoundary();
+//}
 bool DomainBase::IsInitialized() const { return AttributeGroup::IsInitialized(); }
 
 void DomainBase::DoSetUp() { base_type::DoSetUp(); }

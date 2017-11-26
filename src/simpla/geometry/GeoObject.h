@@ -15,6 +15,7 @@
 #include "Axis.h"
 namespace simpla {
 namespace geometry {
+enum GeoRelation { INSIDE = -1, CROSS_BOUNDARY = 0, OUTSIDE = 1 };
 
 /**
  * @ingroup geometry
@@ -95,7 +96,6 @@ class GeoObject : public data::Serializable,
     SP_SERIALIZABLE_HEAD(_BASE_NAME_, _CLASS_NAME_)                                                               \
    protected:                                                                                                     \
     _CLASS_NAME_() = default;                                                                                     \
-    _CLASS_NAME_(_CLASS_NAME_ const &) = default;                                                                 \
     explicit _CLASS_NAME_(Axis const &axis) : base_type(axis){};                                                  \
                                                                                                                   \
    public:                                                                                                        \

@@ -60,8 +60,8 @@ int main(int argc, char **argv) {
     auto pml = scenario->NewDomain<SimplePML>("PML");
     CHECK(center->GetBoundary()->GetBoundingBox());
     pml->SetCenterBox(center->GetBoundary()->GetBoundingBox());
-    scenario->GetAtlas()->SetBoundingBox(box_type{{-15, -25, -25}, {15, 25, 25}});
-    scenario->GetAtlas()->SetPeriodicDimensions({1, 1, 1});
+    scenario->GetAtlas()->SetBoundingBox(box_type{{-20, -30, -20}, {20, 30, 20}});
+    //    scenario->GetAtlas()->SetPeriodicDimensions({1, 1, 1});
 
     scenario->SetTimeEnd(1.0e-8);
     scenario->SetMaxStep(num_of_step);

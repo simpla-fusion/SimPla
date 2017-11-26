@@ -122,12 +122,12 @@ class Atlas : public EngineObject {
     void DoSetUp() override;
     void DoUpdate() override;
     void DoTearDown() override;
-    SP_PROPERTY(int, MaxLevel);
-    SP_PROPERTY(index_tuple, RefineRatio);
-    SP_PROPERTY(index_tuple, LargestPatchDimensions);
-    SP_PROPERTY(index_tuple, SmallestPatchDimensions);
-    SP_PROPERTY(index_tuple, PeriodicDimensions);
-    SP_PROPERTY(index_tuple, CoarsestIndexBox);
+    SP_PROPERTY(int, MaxLevel) = 0;
+    SP_PROPERTY(index_tuple, RefineRatio) = {2, 2, 2};
+    SP_PROPERTY(index_tuple, LargestPatchDimensions) = {64, 64, 64};
+    SP_PROPERTY(index_tuple, SmallestPatchDimensions) = {4, 4, 4};
+    SP_PROPERTY(index_tuple, PeriodicDimensions) = {1, 1, 1};
+    SP_PROPERTY(index_box_type, CoarsestIndexBox) = {{0, 0, 0}, {1, 1, 1}};
 
     void Decompose(index_tuple const &);
     void Decompose();

@@ -3,6 +3,7 @@
 //
 #include <simpla/SIMPLA_config.h>
 #include <simpla/application/SPInit.h>
+#include <simpla/geometry/Box.h>
 #include <simpla/geometry/CutCell.h>
 #include <simpla/geometry/GeoEngine.h>
 #include <simpla/geometry/GeoObject.h>
@@ -21,9 +22,14 @@ int main(int argc, char **argv) {
 
     auto tokamak = sp::Tokamak::New("/home/salmon/workspace/SimPla/scripts/gfile/g038300.03900");
     sg::Initialize("OCE");
+    auto b = sg::Box::New({{-2, -3, -4}, {2, 2, 2}});
+
+    VERBOSE << "Box " << *b;
+    VERBOSE << "Box Copy" << *b->Copy();
     GEO_ENGINE->OpenFile("tokamak.stl");
     auto limiter = sg::MakeRevolution(tokamak->Limiter(), -sp::PI / 4, sp::PI / 4);
     auto boundary = sg::MakeRevolution(tokamak->Boundary(), -sp::PI / 4, sp::PI / 4);
+
     GEO_ENGINE->Save(limiter, "Limiter");
     GEO_ENGINE->Save(boundary, "Boundary");
 
