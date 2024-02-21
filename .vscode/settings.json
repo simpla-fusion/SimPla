@@ -1,0 +1,7 @@
+{
+    "cmake.configureOnOpen": true,
+    "C_Cpp.default.compilerPath": "/usr/bin/g++-11",
+    "C_Cpp.default.cppStandard": "c++20",
+    "C_Cpp.autocompleteAddParentheses": true,
+    "C_Cpp.default.cStandard": "c17"
+}

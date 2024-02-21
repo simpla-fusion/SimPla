@@ -42,10 +42,10 @@ SET(BUILD_SHARED_LIBS OFF)
 INCLUDE(CTest)
 ENABLE_TESTING()
 
-SET(GTEST_ROOT "/usr/src/googletest/googletest/")
-FIND_PACKAGE(GTest REQUIRED)
-MESSAGE("-- Google Test: " ${GTEST_INCLUDE_DIRS})
-ADD_CUSTOM_TARGET(alltest)
+# SET(GTEST_ROOT "/usr/src/googletest/googletest/")
+# FIND_PACKAGE(GTest REQUIRED)
+# MESSAGE("-- Google Test: " ${GTEST_INCLUDE_DIRS})
+# ADD_CUSTOM_TARGET(alltest)
 
 FIND_PACKAGE(Boost REQUIRED)
 
